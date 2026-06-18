@@ -101,10 +101,11 @@
   #coins-stat {
     display: flex; align-items: center; gap: 11px;
     background: none; border: none; padding: 0;
-    color: #FFD400; white-space: nowrap;
+    color: #FFD400; white-space: nowrap; cursor: pointer;
     text-shadow: 2px 2px 0 #000;
-    transform-origin: right center;
+    transform-origin: right center; position: relative;
   }
+  #coins-stat:hover { filter: brightness(1.12); }
   #coins-stat .icon { font-size: 3.3rem; display:inline-flex; align-items:center; }
   #coins-stat .icon svg { height: 1em; width: auto; display:block; }
   #coins-display { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 2.7rem; letter-spacing: 0.5px; -webkit-text-stroke: 1px #FFD400; }
@@ -359,6 +360,85 @@
   .item-card.locked { opacity:0.5; filter:grayscale(0.5); }
   .item-card .lock-badge { position:absolute; top:6px; left:6px; font-size:0.6rem; font-weight:800;
                            background:rgba(0,0,0,0.6); color:#ffd23f; padding:2px 5px; border-radius:5px; }
+
+  /* ── LEADERBOARD ── */
+  #lb-table { width:100%; border-collapse:collapse; margin-top:6px; font-size:0.78rem; }
+  #lb-table th { font-family:'Press Start 2P',monospace; font-size:0.52rem; color:var(--text-dim);
+                 text-align:left; padding:5px 6px; border-bottom:2px solid var(--border); }
+  #lb-table td { padding:7px 6px; border-bottom:1px solid rgba(47,82,54,0.5); vertical-align:middle; }
+  #lb-table tr.me td { background:rgba(108,174,62,0.12); }
+  #lb-table tr.me td:first-child { border-left:3px solid var(--leaf); }
+  .lb-rank  { font-family:'Press Start 2P',monospace; font-size:0.6rem; color:var(--text-dim); width:28px; }
+  .lb-rank.gold   { color:#ffd23f; }
+  .lb-rank.silver { color:#b0b8c4; }
+  .lb-rank.bronze { color:#cd7f32; }
+  .lb-name  { font-weight:800; color:var(--text); }
+  .lb-score { font-weight:800; color:#ffd23f; text-align:right; white-space:nowrap; }
+  .lb-level { color:var(--text-dim); text-align:right; font-size:0.7rem; }
+  .lb-date  { color:var(--text-dim); font-size:0.65rem; text-align:right; white-space:nowrap; }
+  #lb-empty { text-align:center; color:var(--text-dim); font-size:0.78rem; padding:18px 0; }
+  #lb-my-score { text-align:center; margin:2px 0 10px; color:var(--text-dim); font-size:0.78rem; }
+  #lb-my-score strong { color:#ffd23f; }
+  #lb-cur-wallet { font-family:'Press Start 2P',monospace; font-size:0.58rem; color:var(--leaf); }
+  #lb-table .lb-name { font-family:'Press Start 2P',monospace; font-size:0.56rem; letter-spacing:0.3px; }
+
+  /* ── VAULT (Forest Game Balance) ── */
+  #vault-balance { text-align:center; background:rgba(0,0,0,0.32); border:2px solid var(--border);
+                   border-radius:8px; padding:13px; margin-bottom:14px; }
+  #vault-balance .vb-amt { font-family:'Press Start 2P',monospace; font-size:1.25rem; color:#ffd23f; line-height:1.3; }
+  #vault-balance .vb-label { font-size:0.7rem; color:var(--text-dim); margin-top:6px; }
+  #vault-balance .vb-row { display:flex; justify-content:space-between; align-items:center;
+                           margin-top:11px; padding-top:10px; border-top:1px solid rgba(47,82,54,0.6);
+                           font-size:0.82rem; font-weight:800; }
+  #vault-balance .vb-row span:first-child { color:var(--text-dim); font-weight:700; }
+  #vault-balance .vb-row #vault-wallet-amt { color:var(--leaf); }
+  #vault-balance .vb-wallet { font-family:'Press Start 2P',monospace; font-size:0.52rem; color:var(--leaf); margin-top:8px; }
+  #vault-balance .vb-wallet.off { color:var(--berry-lt); }
+  #vault-amt { width:100%; background:var(--panel); border:2px solid var(--border); border-radius:6px;
+               color:var(--text); font-family:'Nunito',sans-serif; font-weight:800; font-size:1.05rem;
+               padding:11px 12px; text-align:center; outline:none; }
+  #vault-amt:focus { border-color:var(--leaf); }
+  #vault-amt:disabled { opacity:0.5; }
+  .vault-actions { display:flex; gap:9px; margin-top:12px; }
+  .vault-actions .btn { margin-top:0; flex:1; }
+  .btn-deposit  { background:var(--leaf-dk); border-color:var(--leaf); color:#fff; }
+  .btn-withdraw { background:var(--panel); border-color:var(--gold); color:#ffd23f; }
+  .btn-deposit:disabled, .btn-withdraw:disabled { opacity:0.45; cursor:not-allowed; }
+  #vault-status { text-align:center; font-size:0.76rem; margin-top:13px; min-height:1rem; color:var(--text-dim); line-height:1.35; }
+  #vault-status.err { color:var(--berry-lt); }
+  #vault-status.ok  { color:var(--leaf); }
+
+  /* ── DAILY LOGIN BONUS (present widget between coins & Seedbox) ── */
+  .daily-gift {
+    width: clamp(72px, 17vw, 165px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    background: linear-gradient(180deg, var(--panel-lt), var(--panel));
+    border:3px solid var(--gold); border-radius:16px;
+    padding:10px 6px; cursor:pointer;
+    box-shadow:0 4px 0 rgba(0,0,0,0.5);
+    transition: transform .08s, box-shadow .15s, border-color .12s, filter .12s;
+  }
+  .daily-gift:hover { transform:translateY(-2px); filter:brightness(1.08); }
+  .daily-gift:active { transform:translateY(0); box-shadow:0 1px 0 rgba(0,0,0,0.5); }
+  .daily-gift .dg-icon { width:clamp(34px,8vw,66px); height:clamp(34px,8vw,66px); display:flex; }
+  .daily-gift .dg-icon svg { width:100%; height:100%; display:block; }
+  .daily-gift .dg-label { font-family:'Press Start 2P', monospace; font-size:clamp(0.46rem,1.2vw,0.5rem);
+                          color:#ffe27a; text-align:center; line-height:1.4; letter-spacing:0.3px; }
+  .daily-gift .dg-timer { font-family:'Press Start 2P', monospace; font-size:clamp(0.48rem,1.3vw,0.56rem);
+                          color:#a9c6a3; text-align:center; }
+  .daily-gift.ready { box-shadow:0 0 16px rgba(255,210,63,0.65), 0 4px 0 rgba(0,0,0,0.5);
+                      animation: giftBob 1s ease-in-out infinite; }
+  .daily-gift.ready .dg-timer { color:#7ed321; }
+  .daily-gift.ready .dg-icon { animation: giftShake 1.4s ease-in-out infinite; transform-origin:50% 90%; }
+  @keyframes giftBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+  @keyframes giftShake { 0%,86%,100%{transform:rotate(0);} 90%{transform:rotate(-7deg);} 94%{transform:rotate(7deg);} }
+  .daily-gift.revoked { border-color:#7a3b3b; filter:grayscale(0.7); opacity:0.72; }
+  .daily-gift.revoked .dg-timer { color:var(--berry-lt); }
+
+  /* respect reduced-motion: stop the perpetual ambient loops (keep static glow cues) */
+  @media (prefers-reduced-motion: reduce) {
+    .daily-gift.ready, .daily-gift.ready .dg-icon, .star { animation: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -366,9 +446,9 @@
 <div id="backdrop"></div>
 
 <div id="topbar">
-  <h1 class="pixel">🍓 FOREST <span class="s">GARDEN</span></h1>
+  <h1 class="pixel"><span style="cursor:pointer;font-size:4.29rem;vertical-align:middle;line-height:1" onclick="openLeaderboard()" title="Leaderboard">🏆</span> FOREST <span class="s">GARDEN</span></h1>
   <div class="spacer"></div>
-  <div id="coins-stat"><span class="icon"><svg viewBox="0 0 64 58" aria-hidden="true"><g stroke="#21323a" stroke-width="2.6" stroke-linejoin="round"><ellipse cx="23" cy="42" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="35" rx="18" ry="7" fill="#ffc91a"/><ellipse cx="23" cy="28" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="21" rx="18" ry="7" fill="#ffc91a"/></g><g transform="rotate(-16 45 36)"><ellipse cx="45" cy="36" rx="15" ry="18" fill="#ffc91a" stroke="#21323a" stroke-width="2.8"/><ellipse cx="45" cy="36" rx="10" ry="12.5" fill="none" stroke="#21323a" stroke-width="2"/><text x="45" y="42.5" font-size="17" font-weight="900" text-anchor="middle" fill="#21323a" font-family="Arial, sans-serif">$</text></g></svg></span><span id="coins-display">0</span></div>
+  <div id="coins-stat" onclick="openVault()" title="Vault — deposit / withdraw"><span class="icon"><svg viewBox="0 0 64 58" aria-hidden="true"><g stroke="#21323a" stroke-width="2.6" stroke-linejoin="round"><ellipse cx="23" cy="42" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="35" rx="18" ry="7" fill="#ffc91a"/><ellipse cx="23" cy="28" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="21" rx="18" ry="7" fill="#ffc91a"/></g><g transform="rotate(-16 45 36)"><ellipse cx="45" cy="36" rx="15" ry="18" fill="#ffc91a" stroke="#21323a" stroke-width="2.8"/><ellipse cx="45" cy="36" rx="10" ry="12.5" fill="none" stroke="#21323a" stroke-width="2"/><text x="45" y="42.5" font-size="17" font-weight="900" text-anchor="middle" fill="#21323a" font-family="Arial, sans-serif">$</text></g></svg></span><span id="coins-display">0</span></div>
 </div>
 
 <div id="stage">
@@ -399,7 +479,26 @@
     <div id="game-wrap"><div id="garden"></div></div>
 
     <div class="rail right">
-      <div class="tool-btn shop" title="Seedbox" onclick="openShop()"><span class="tool-icon"><svg viewBox="0 0 64 60" width="80%" height="80%" aria-hidden="true">
+      <div class="daily-gift" id="daily-gift" onclick="onDailyGiftClick()">
+        <span class="dg-icon"><svg viewBox="0 0 48 48" aria-hidden="true">
+          <!-- bow -->
+          <g fill="#ffd23f" stroke="#b5862a" stroke-width="1.6" stroke-linejoin="round">
+            <path d="M24 13 C19 4 9 5 12 12 C13.5 15.5 19.5 14.5 24 13Z"/>
+            <path d="M24 13 C29 4 39 5 36 12 C34.5 15.5 28.5 14.5 24 13Z"/>
+          </g>
+          <!-- lid -->
+          <rect x="6.5" y="13" width="35" height="10" rx="2" fill="#d8392b" stroke="#7e1f17" stroke-width="2"/>
+          <!-- box -->
+          <rect x="10" y="22" width="28" height="20" rx="2" fill="#e0503b" stroke="#7e1f17" stroke-width="2"/>
+          <!-- vertical ribbon -->
+          <rect x="20.5" y="13" width="7" height="29" fill="#ffd23f" stroke="#b5862a" stroke-width="1.2"/>
+          <!-- knot -->
+          <circle cx="24" cy="13.5" r="2.8" fill="#ffd23f" stroke="#b5862a" stroke-width="1.2"/>
+        </svg></span>
+        <span class="dg-label">DAILY<br>BONUS</span>
+        <span class="dg-timer" id="daily-timer">--</span>
+      </div>
+      <div class="tool-btn shop" id="tb-seedbox" title="Seedbox" onclick="openShop()"><span class="tool-icon"><svg viewBox="0 0 64 60" width="80%" height="80%" aria-hidden="true">
         <defs><radialGradient id="chestGlow" cx="50%" cy="40%" r="55%">
           <stop offset="0%" stop-color="#fff3b0"/><stop offset="45%" stop-color="#ffd23f"/><stop offset="100%" stop-color="#ffd23f" stop-opacity="0"/>
         </radialGradient></defs>
@@ -575,6 +674,35 @@
   </div>
 </div>
 
+<!-- VAULT (Forest Game Balance: deposit / withdraw) -->
+<div class="overlay" id="vault-overlay" onclick="bgClose(event,'vault-overlay')">
+  <div class="modal"><h2>🏦 Vault</h2>
+    <p class="sub">Deposit to top up your 🪙 balance, or withdraw it back to your wallet via Forest.</p>
+    <div id="vault-balance">
+      <div class="vb-amt" id="vault-bal-amt">—</div>
+      <div class="vb-label">Game Balance</div>
+      <div class="vb-row"><span>Wallet Balance</span><span id="vault-wallet-amt">—</span></div>
+      <div class="vb-wallet" id="vault-wallet">wallet not connected</div>
+    </div>
+    <input id="vault-amt" type="number" min="0" step="any" inputmode="decimal" placeholder="Amount (e.g. 1.5)" />
+    <div class="vault-actions">
+      <button class="btn btn-deposit"  id="vault-deposit-btn"  onclick="doVault('deposit')">⬇ Deposit</button>
+      <button class="btn btn-withdraw" id="vault-withdraw-btn" onclick="doVault('withdraw')">⬆ Withdraw</button>
+    </div>
+    <div id="vault-status"></div>
+    <button class="btn btn-close" onclick="closeOverlay('vault-overlay')">Close</button>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="overlay" id="lb-overlay" onclick="bgClose(event,'lb-overlay')">
+  <div class="modal"><h2>🏆 Leaderboard</h2>
+    <p id="lb-my-score">You (<span id="lb-cur-wallet">not connected</span>): <strong id="lb-cur-score">0</strong> 🪙 · Lv <strong id="lb-cur-level">1</strong></p>
+    <div id="lb-body"></div>
+    <button class="btn btn-close" onclick="closeOverlay('lb-overlay')">Close</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -589,6 +717,73 @@ const Forest = (function(){
   };
 })();
 window.addEventListener('load',()=>setTimeout(()=>Forest.init(),600));
+
+/* ─── FOREST POSTMESSAGE BRIDGE (wallet identity for the leaderboard) ───
+   Forest sends the connected wallet address to the iframe (display-only). We use it
+   to automatically key each player's leaderboard entry — no name entry, no save button. */
+let walletAddress = null, projectId = null;
+let gameBalance = null;              // Forest Game Balance snapshot (Project Token, separate from in-game 🪙 coins)
+let walletTokenBalance = null;       // wallet-held $GARDEN balance (display number, from a sell-quote snapshot)
+let walletTokenSymbol = 'GARDEN';    // launched-token symbol, overridden by the snapshot
+const forestPending = {};            // request id → method, so responses can be routed
+function requestId(){ return (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2)); }
+function callForest(method, params={}){
+  const id=requestId();
+  forestPending[id]=method;
+  try{ window.parent.postMessage({ type:'FOREST_RPC_REQUEST', version:1, id, method, params }, '*'); }catch(e){}
+  return id;
+}
+// pull the balance object out of either a balance-read result or a deposit/withdraw result
+function extractBalance(result){
+  if(!result) return null;
+  if(result.balance && typeof result.balance === 'object') return result.balance;   // deposit / withdraw
+  if(typeof result.balance === 'string') return result;                              // forest.game.balance
+  return null;
+}
+window.addEventListener('message', (event)=>{
+  if(event.source !== window.parent) return;
+  const data = event.data || {};
+  if(data.type === 'FOREST_PROJECT_CONTEXT' && typeof data.projectId === 'string'){
+    projectId = data.projectId; return;
+  }
+  if(data.type === 'FOREST_WALLET_CONNECTED'){
+    walletAddress = data.walletAddress || null;
+    onPlayerIdentified();
+    callForest('forest.game.balance');                       // load Game Balance for the vault
+    callForest('forest.swap.quote', { amount:'1', direction:'sell' });   // read wallet $GARDEN balance via snapshot
+    return;
+  }
+  if(data.type === 'FOREST_WALLET_DISCONNECTED'){
+    walletAddress = null; gameBalance = null; walletTokenBalance = null; renderVault(); return;
+  }
+  if(data.type === 'FOREST_RPC_RESPONSE'){
+    const method = forestPending[data.id];
+    // a sell-direction quote snapshot carries the wallet's launched-token ($GARDEN) balance
+    if(method === 'forest.swap.quote' && data.result && data.result.snapshot){
+      const snap = data.result.snapshot;
+      if(snap.direction === 'sell' && snap.payToken){
+        if(typeof snap.payToken.balance === 'number') walletTokenBalance = snap.payToken.balance;
+        if(snap.payToken.symbol) walletTokenSymbol = snap.payToken.symbol;
+        renderVault();
+      }
+      if(data.status === 'success' || data.status === 'error') delete forestPending[data.id];
+      return;
+    }
+    const isVault = method==='forest.game.balance' || method==='forest.game.deposit' || method==='forest.game.withdraw';
+    if(isVault){
+      if(data.status === 'error'){
+        onVaultResult(method, 'error', data.error || {});
+      } else {
+        const bal = extractBalance(data.result);
+        if(bal) gameBalance = bal;
+        onVaultResult(method, data.status, data.result || {});
+      }
+    }
+    if(data.status === 'success' || data.status === 'error') delete forestPending[data.id];
+    return;
+  }
+});
+try{ window.parent.postMessage({ type:'FOREST_REQUEST_WALLET' }, '*'); }catch(e){}
 
 /* ─── render forest backdrop ─── */
 (function buildForest(){
@@ -613,7 +808,7 @@ window.addEventListener('load',()=>setTimeout(()=>Forest.init(),600));
     {n:Math.ceil(W/180)+2, scale:[0.8,1.1],  bottom:[18,24], blossom:['#d98fb8','#c97ea8','#e7a3c8','#caa0b8'], trunk:'#4a3326', op:0.85},
     {n:Math.ceil(W/240)+1, scale:[1.1,1.5],  bottom:[15,22], blossom:['#ffc2dd','#f7a9cd','#ffb6d6','#ffd3e6'], trunk:'#5a3a2a', op:1},
   ];
-  layers.forEach(L=>{
+  layers.forEach((L,li)=>{
     for(let i=0;i<L.n;i++){
       const sc = L.scale[0]+Math.random()*(L.scale[1]-L.scale[0]);
       const t=document.createElement('div'); t.className='tree';
@@ -622,30 +817,65 @@ window.addEventListener('load',()=>setTimeout(()=>Forest.init(),600));
       t.style.left=(i/L.n*100 + (Math.random()*8-4))+'%';
       t.style.bottom=(L.bottom[0]+Math.random()*(L.bottom[1]-L.bottom[0]))+'%';
       t.style.opacity=L.op;
-      // blocky trunk
-      const px = Math.max(5, Math.round(tw*0.17));   // pixel cell size
-      const trunk=document.createElement('div'); trunk.className='trunk';
-      trunk.style.width=px+'px'; trunk.style.height=(th*0.45)+'px';
-      trunk.style.background=L.trunk; t.appendChild(trunk);
-      // pixelated blossom canopy: square cells filling a blobby ellipse
-      const cx=tw/2, canopyBottom=th*0.40;
-      const cols=Math.max(3,Math.round(tw/px)), rows=Math.max(3,Math.round((th*0.55)/px));
-      const ccx=(cols-1)/2, ccy=(rows-1)/2;
-      const baseLeft=cx-(cols*px)/2;
-      for(let r=0;r<rows;r++){
-        for(let c=0;c<cols;c++){
-          const nx=(c-ccx)/(cols/2), ny=(r-ccy)/(rows/2);
-          const d2=nx*nx+ny*ny;
-          if(d2>1.05) continue;
-          if(d2>0.62 && Math.random()<0.4) continue;   // rough pixel edge
-          const bl=document.createElement('div'); bl.className='blossom';
-          bl.style.width=px+'px'; bl.style.height=px+'px';
-          bl.style.left=(baseLeft + c*px)+'px';
-          bl.style.bottom=(canopyBottom + r*px)+'px';
-          bl.style.background=L.blossom[(Math.random()*L.blossom.length)|0];
-          t.appendChild(bl);
-        }
+      // soft blur on back layers for natural depth
+      if(li===0) t.style.filter='blur(1.4px)';
+      else if(li===1) t.style.filter='blur(0.5px)';
+
+      const NS='http://www.w3.org/2000/svg';
+      const svg=document.createElementNS(NS,'svg');
+      svg.setAttribute('viewBox',`0 0 ${tw} ${th}`);
+      svg.setAttribute('width',tw); svg.setAttribute('height',th);
+      svg.style.cssText='position:absolute;left:0;bottom:0;overflow:visible;';
+
+      // subtle drop-shadow on front layer
+      if(li===2){
+        const defs=document.createElementNS(NS,'defs');
+        defs.innerHTML=`<filter id="ts${i}"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.18)"/></filter>`;
+        svg.appendChild(defs);
+        svg.setAttribute('filter',`url(#ts${i})`);
       }
+
+      // tapered trunk
+      const trunkW=Math.max(5, tw*0.10);
+      const path=document.createElementNS(NS,'path');
+      path.setAttribute('d',
+        `M${tw/2-trunkW*0.55} ${th} L${tw/2-trunkW*0.38} ${th*0.53} `+
+        `L${tw/2+trunkW*0.38} ${th*0.53} L${tw/2+trunkW*0.55} ${th} Z`);
+      path.setAttribute('fill',L.trunk);
+      svg.appendChild(path);
+
+      // canopy: 6 soft overlapping ellipses, slightly randomised each tree
+      const j=()=>(Math.random()-0.5)*tw*0.10;
+      const cy0=th*0.29;
+      const blobs=[
+        {dx:0,         dy:0,        rx:tw*0.44, ry:th*0.30, oi:0},
+        {dx:-tw*0.22,  dy:th*0.10,  rx:tw*0.31, ry:th*0.24, oi:1},
+        {dx: tw*0.22,  dy:th*0.08,  rx:tw*0.33, ry:th*0.23, oi:2},
+        {dx:-tw*0.09,  dy:-th*0.14, rx:tw*0.28, ry:th*0.21, oi:3},
+        {dx: tw*0.14,  dy:-th*0.12, rx:tw*0.26, ry:th*0.20, oi:0},
+        {dx: tw*0.02,  dy: th*0.16, rx:tw*0.24, ry:th*0.17, oi:1},
+      ];
+      blobs.forEach(b=>{
+        const e=document.createElementNS(NS,'ellipse');
+        e.setAttribute('cx', tw/2 + b.dx + j());
+        e.setAttribute('cy', cy0 + b.dy + j()*0.4);
+        e.setAttribute('rx', b.rx*(0.88+Math.random()*0.24));
+        e.setAttribute('ry', b.ry*(0.88+Math.random()*0.24));
+        e.setAttribute('fill', L.blossom[b.oi%L.blossom.length]);
+        e.setAttribute('opacity','0.88');
+        svg.appendChild(e);
+      });
+
+      // delicate highlight on top blob
+      const hi=document.createElementNS(NS,'ellipse');
+      hi.setAttribute('cx', tw/2 + j()*0.5);
+      hi.setAttribute('cy', cy0 - th*0.07);
+      hi.setAttribute('rx', tw*0.20);
+      hi.setAttribute('ry', th*0.10);
+      hi.setAttribute('fill','rgba(255,255,255,0.18)');
+      svg.appendChild(hi);
+
+      t.appendChild(svg);
       bd.appendChild(t);
     }
   });
@@ -782,7 +1012,7 @@ function pickCrop(rarity){
 }
 
 const ITEMS_PER_BOX = 5;            // box holds 5 items
-const LOOTBOX_COST = 250;           // fixed box price (spreadsheet House Edge = payout / 250)
+const LOOTBOX_COST = 350;           // fixed box price (spreadsheet House Edge = payout / 350)
 
 const harvestValue=(pk)=>Math.round(PLANTS[pk].yield ?? RARITY[PLANTS[pk].rarity].yield);   // base (Common) value
 const saleValue=(pk,v)=>Math.round(harvestValue(pk)*VARIANT[v].mult);                        // harvested sale price (rarity surplus)
@@ -994,6 +1224,7 @@ function spawnFx(idx,text){
 
 /* flashy coin-gain feedback (sale -> coins) */
 function coinGain(amount){
+  totalCoinsEarned += amount; recordScore();   // tally session earnings + keep leaderboard live
   const el=document.getElementById('coins-stat'); if(!el) return;
   el.classList.remove('gain'); void el.offsetWidth; el.classList.add('gain');
   const r=el.getBoundingClientRect();
@@ -1131,6 +1362,9 @@ const FAST_CLICKS=3, FAST_WINDOW=1000;   // open if ≥3 clicks within 1 second
 function buyBox(){
   if(coins<LOOTBOX_COST){toast('Not enough coins 🪙');return;}
   coins-=LOOTBOX_COST; boxes++; updateHUD();
+  // record the purchase: keeps the daily bonus alive and lifts an inactivity pause
+  dailyMutate(r=>{ r.lastBuy=Date.now(); if(r.revoked && r.reason==='inactive'){ r.revoked=false; r.reason=null; } });
+  renderDaily();
   toast('🎁 Bought a Seedbox! You have '+boxes+'.');
 }
 
@@ -1338,7 +1572,7 @@ function openShop(){
   const stage=document.getElementById('reveal-stage'); stage.classList.remove('on');
   document.getElementById('reveal-row').innerHTML='';
   const banner=document.getElementById('reveal-banner'); banner.className=''; banner.textContent='';
-  updateHUD();
+  updateHUD(); renderDaily();
   openOverlay('shop-overlay');
 }
 function cap(s){return s[0].toUpperCase()+s.slice(1);}
@@ -1346,7 +1580,368 @@ function cap(s){return s[0].toUpperCase()+s.slice(1);}
 let toastTimer;
 function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2200);}
 
+/* ════════════════ LEADERBOARD (automated, wallet-keyed) ════════════════
+   Player identity comes from Forest's wallet message — no name entry, no save
+   button. Each player's best score auto-updates against their wallet address. */
+const LB_KEY  = 'fg_leaderboard';
+const LB_MAX  = 10;
+
+let totalCoinsEarned = 0;   // tracks coins gained this session (not starting balance); coinGain() tallies it
+
+function lbLoad(){ try{ return JSON.parse(localStorage.getItem(LB_KEY)||'[]'); }catch(e){ return []; } }
+function lbSave(entries){ try{ localStorage.setItem(LB_KEY, JSON.stringify(entries)); }catch(e){} }
+
+// short, readable wallet label: 0x1234…abcd
+function shortWallet(w){ return (w && w.length>10) ? w.slice(0,6)+'…'+w.slice(-4) : (w||'Guest'); }
+
+// the player's leaderboard id: their wallet when connected, else a stable local guest id
+function playerId(){
+  if(walletAddress) return walletAddress;
+  let g = localStorage.getItem('fg_guest_id');
+  if(!g){ g='guest-'+Math.random().toString(16).slice(2,10); localStorage.setItem('fg_guest_id', g); }
+  return g;
+}
+
+// called when Forest reports the connected wallet — fold any guest progress into it
+function onPlayerIdentified(){
+  if(walletAddress){
+    const guestId = localStorage.getItem('fg_guest_id');
+    if(guestId){
+      const entries = lbLoad();
+      const guest = entries.find(e => e.id === guestId);
+      if(guest){
+        const wEntry = entries.find(e => e.id === walletAddress);
+        if(wEntry){ wEntry.score = Math.max(wEntry.score, guest.score); wEntry.level = Math.max(wEntry.level, guest.level); }
+        else { guest.id = walletAddress; }     // re-key the guest entry to the wallet
+        if(wEntry) entries.splice(entries.indexOf(guest), 1);   // drop the now-merged guest row
+        guest.wallet = walletAddress;
+        lbSave(entries);
+      }
+    }
+  }
+  recordScore();
+  dailyMigrateToWallet(); renderDaily();
+  if(document.getElementById('lb-overlay').classList.contains('open')) renderLeaderboard();
+}
+
+// upsert this player's entry, keeping their best coins-earned score
+function recordScore(){
+  const id = playerId();
+  const entries = lbLoad();
+  const existing = entries.find(e => e.id === id);
+  if(existing){
+    if(totalCoinsEarned > existing.score){ existing.score = totalCoinsEarned; existing.level = level; existing.date = new Date().toLocaleDateString(); }
+    else { existing.level = Math.max(existing.level, level); }
+    existing.wallet = walletAddress || existing.wallet;   // upgrade guest → wallet label on connect
+  } else {
+    entries.push({ id, wallet: walletAddress, score: totalCoinsEarned, level, date: new Date().toLocaleDateString() });
+  }
+  entries.sort((a,b) => b.score - a.score);
+  lbSave(entries.slice(0, Math.max(LB_MAX, entries.length)));   // keep all entries; we slice on render
+}
+
+function renderLeaderboard(){
+  const entries = lbLoad().sort((a,b)=>b.score-a.score);
+  const body = document.getElementById('lb-body');
+  const myId = playerId();
+
+  document.getElementById('lb-cur-score').textContent = totalCoinsEarned;
+  document.getElementById('lb-cur-level').textContent = level;
+  document.getElementById('lb-cur-wallet').textContent = walletAddress ? shortWallet(walletAddress) : 'not connected';
+
+  if(!entries.length){
+    body.innerHTML = '<div id="lb-empty">No scores yet — sell crops to climb the board!</div>';
+    return;
+  }
+
+  const rankMedal = (i) => {
+    if(i===0) return '<span class="lb-rank gold">🥇</span>';
+    if(i===1) return '<span class="lb-rank silver">🥈</span>';
+    if(i===2) return '<span class="lb-rank bronze">🥉</span>';
+    return `<span class="lb-rank">#${i+1}</span>`;
+  };
+
+  let html = '<table id="lb-table"><thead><tr>'
+    + '<th></th><th>Player</th><th style="text-align:right">Coins</th>'
+    + '<th style="text-align:right">Lv</th><th style="text-align:right">Date</th>'
+    + '</tr></thead><tbody>';
+
+  entries.slice(0, LB_MAX).forEach((e,i) => {
+    const me = e.id === myId ? ' class="me"' : '';
+    const label = e.wallet ? shortWallet(e.wallet) : '👤 You';
+    html += `<tr${me}>`
+      + `<td>${rankMedal(i)}</td>`
+      + `<td class="lb-name">${label}</td>`
+      + `<td class="lb-score">🪙${e.score}</td>`
+      + `<td class="lb-level">${e.level}</td>`
+      + `<td class="lb-date">${e.date}</td>`
+      + '</tr>';
+  });
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+function openLeaderboard(){
+  recordScore();
+  renderLeaderboard();
+  openOverlay('lb-overlay');
+}
+
+/* ════════════════ VAULT (Forest Game Balance deposit / withdraw) ════════════════ */
+let vaultBusy = false;
+
+// the whole coins area is the (invisible) trigger — clicking it opens the vault directly
+function openVault(){
+  vaultStatus('', '');
+  if(walletAddress){
+    callForest('forest.game.balance');                                 // refresh game balance
+    callForest('forest.swap.quote', { amount:'1', direction:'sell' }); // refresh wallet $GARDEN balance
+  }
+  renderVault();
+  openOverlay('vault-overlay');
+}
+
+let vaultPendingAmount = 0, vaultPendingDir = null;   // applied to coins on success
+
+// display a token amount: group thousands, trim to 4 decimals
+function fmtToken(n){
+  const x = Number(n);
+  if(!isFinite(x)) return '0';
+  return x.toLocaleString(undefined, { maximumFractionDigits: 4 });
+}
+
+function renderVault(){
+  const amtEl = document.getElementById('vault-bal-amt');
+  const wEl   = document.getElementById('vault-wallet');
+  const wbEl  = document.getElementById('vault-wallet-amt');
+  if(!amtEl) return;
+  amtEl.textContent = '🪙' + coins;   // Game Balance == the balance shown top-right
+  if(wbEl){
+    wbEl.textContent = (walletTokenBalance!=null)
+      ? (fmtToken(walletTokenBalance)+' '+walletTokenSymbol)
+      : (walletAddress ? '…' : '—');
+  }
+  if(walletAddress){
+    wEl.textContent = shortWallet(walletAddress); wEl.classList.remove('off');
+  } else {
+    wEl.textContent = 'wallet not connected'; wEl.classList.add('off');
+  }
+  updateVaultButtons();
+}
+
+function updateVaultButtons(){
+  const dis = vaultBusy || !walletAddress;
+  ['vault-deposit-btn','vault-withdraw-btn'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=dis; });
+  const inp=document.getElementById('vault-amt'); if(inp) inp.disabled=vaultBusy;
+}
+
+function vaultStatus(msg, kind){
+  const el=document.getElementById('vault-status'); if(!el) return;
+  el.textContent=msg; el.className=kind||'';
+}
+
+function doVault(direction){
+  if(vaultBusy) return;
+  if(!walletAddress){ vaultStatus('Connect your wallet in Forest to use the vault.', 'err'); return; }
+  const raw=(document.getElementById('vault-amt').value||'').trim();
+  const num=Number(raw);
+  if(!raw || !isFinite(num) || num<=0){ vaultStatus('Enter a positive amount.', 'err'); return; }
+  // withdraw moves the visible balance (coins) out to the wallet — can't exceed it
+  if(direction==='withdraw' && num > coins){
+    vaultStatus('Amount exceeds your balance.', 'err'); return;
+  }
+  vaultPendingAmount=num; vaultPendingDir=direction;
+  vaultBusy=true; updateVaultButtons();
+  vaultStatus((direction==='deposit'?'Depositing ':'Withdrawing ')+raw+' — confirm in your wallet…', '');
+  // Forest opens the wallet, submits on-chain, verifies, then returns.
+  callForest(direction==='deposit' ? 'forest.game.deposit' : 'forest.game.withdraw', { amount: raw });
+}
+
+// routed here from the FOREST_RPC_RESPONSE handler for game.balance/deposit/withdraw
+function onVaultResult(method, status, payload){
+  if(method==='forest.game.balance'){ renderVault(); return; }   // silent refresh
+
+  const verb = method==='forest.game.deposit' ? 'Deposit' : 'Withdrawal';
+  if(status==='pending'){ vaultStatus(verb+' submitted — confirm in your wallet…', ''); return; }
+  if(status==='hash'){ vaultStatus(verb+' transaction submitted, confirming on-chain…', ''); return; }
+  if(status==='success'){
+    // apply the move to the visible balance: deposit adds coins, withdraw removes them
+    if(vaultPendingDir==='deposit') coins += vaultPendingAmount;
+    else if(vaultPendingDir==='withdraw') coins = Math.max(0, coins - vaultPendingAmount);
+    updateHUD(); renderVault();
+    vaultBusy=false; vaultPendingDir=null; updateVaultButtons();
+    const inp=document.getElementById('vault-amt'); if(inp) inp.value='';
+    vaultStatus(verb+' complete! Balance: 🪙'+coins, 'ok');
+    toast('🏦 '+verb+' complete!');
+    return;
+  }
+  if(status==='error'){
+    vaultBusy=false; vaultPendingDir=null; updateVaultButtons();
+    const msg=(payload && payload.message) ? payload.message : (verb+' failed. Please try again.');
+    vaultStatus(msg, 'err');
+    return;
+  }
+}
+
+/* ════════════════ DAILY LOGIN BONUS (+ anti-farming) ════════════════
+   1 free Seedbox per 24h, keyed per player (wallet, else guest id). The 24h
+   timer resets when the bonus is claimed. Two auto-removal rules guard against
+   airdrop farmers / bots:
+     • BOT signature — collects >90% of offered bonuses, >90% of them within 2h
+       of becoming available, AND with near-zero timing jitter. The jitter gate
+       is the key discriminator: an eager *human* claims promptly too, but their
+       lag (time from reset to claim) varies day to day; a script claims at a
+       near-constant offset. We require a 7-claim sample and a claim-lag stddev
+       under ~2min before flagging, so diligent humans are never caught.
+     • no lootbox purchase for more than 5 days (re-activates on the next buy).
+   NOTE: this is a client-side localStorage heuristic — advisory only. A real bot
+   can clear storage to evade it, so final enforcement must move to the backend
+   (keyed on the verified Forest userId). See the backend checklist. */
+const DAILY_KEY           = 'fg_daily';
+const DAY_MS              = 24*60*60*1000;
+const FAST_MS             = 2*60*60*1000;     // "within 2h of becoming available"
+const DAILY_MIN_SAMPLE    = 7;                // min claims before bot-flagging
+const DAILY_COLLECT_LIMIT = 0.90;             // >90% of bonuses collected
+const DAILY_FAST_LIMIT    = 0.90;             // >90% of collections within 2h
+const DAILY_JITTER_MS     = 120000;           // <2min claim-lag stddev = machine-like timing
+const DAILY_LAG_WINDOW    = 12;               // recent claim lags kept for the jitter test
+const INACTIVE_MS         = 5*DAY_MS;         // no lootbox purchase for >5 days
+
+function dailyAll(){ try{ return JSON.parse(localStorage.getItem(DAILY_KEY)||'{}'); }catch(e){ return {}; } }
+function dailySaveAll(m){ try{ localStorage.setItem(DAILY_KEY, JSON.stringify(m)); }catch(e){} }
+function dailyNew(now){ return { createdAt:now, lastClaim:null, lastBuy:now, offers:0, claims:0, fast:0, lags:[], revoked:false, reason:null }; }
+// population standard deviation of an array (ms); Infinity until there's enough to judge
+function dailyStdDev(arr){
+  if(!arr || arr.length < 2) return Infinity;
+  const mean = arr.reduce((a,b)=>a+b,0)/arr.length;
+  const variance = arr.reduce((a,b)=>a+(b-mean)*(b-mean),0)/arr.length;
+  return Math.sqrt(variance);
+}
+function dailyGet(){ const all=dailyAll(), id=playerId(); if(!all[id]){ all[id]=dailyNew(Date.now()); dailySaveAll(all); } return all[id]; }
+function dailyMutate(fn){ const all=dailyAll(), id=playerId(); const r=all[id]||dailyNew(Date.now()); fn(r); all[id]=r; dailySaveAll(all); return r; }
+
+// guest progress follows the player once their wallet connects
+function dailyMigrateToWallet(){
+  if(!walletAddress) return;
+  const guestId=localStorage.getItem('fg_guest_id'); if(!guestId) return;
+  const all=dailyAll();
+  const g=all[guestId]; if(!g) return;
+  const w=all[walletAddress];
+  if(!w){
+    all[walletAddress]=g;                               // no wallet record yet — just adopt the guest's
+  } else {
+    // both exist: merge so neither the timer, counters, nor a revoke is lost
+    all[walletAddress]={
+      createdAt: Math.min(g.createdAt, w.createdAt),
+      lastClaim: (Math.max(g.lastClaim||0, w.lastClaim||0)) || null,
+      lastBuy:   Math.max(g.lastBuy||0, w.lastBuy||0),
+      offers:    (g.offers||0)+(w.offers||0),
+      claims:    (g.claims||0)+(w.claims||0),
+      fast:      (g.fast||0)+(w.fast||0),
+      lags:      (w.lags||[]).concat(g.lags||[]).slice(-DAILY_LAG_WINDOW),
+      revoked:   !!(g.revoked||w.revoked),              // a flag in either record sticks
+      reason:    w.reason||g.reason||null,
+    };
+  }
+  delete all[guestId];                                  // never leave an orphan guest row
+  dailySaveAll(all);
+}
+
+function dailyAvailable(r){ if(r.revoked) return false; if(r.lastClaim==null) return true; return Date.now() >= r.lastClaim+DAY_MS; }
+function dailyMsLeft(r){ if(r.lastClaim==null) return 0; return Math.max(0, r.lastClaim+DAY_MS - Date.now()); }
+
+// inactivity revoke — safe to call every second; only writes when the state actually flips
+function dailyCheckInactive(){
+  const all=dailyAll(), id=playerId(); const r=all[id]; if(!r) return dailyGet();
+  if(!r.revoked){
+    const ref = r.lastBuy || r.createdAt;
+    if(Date.now()-ref > INACTIVE_MS){ r.revoked=true; r.reason='inactive'; all[id]=r; dailySaveAll(all); }
+  }
+  return r;
+}
+
+function dailyRevokeText(reason){
+  return reason==='bot'
+    ? '🚫 Daily bonus disabled — unusual collection pattern detected.'
+    : '🚫 Daily bonus paused — buy a Seedbox to re-activate it.';
+}
+
+function fmtDuration(ms){
+  const s=Math.ceil(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+  if(h>0) return h+'h '+m+'m';
+  if(m>0) return m+'m '+ss+'s';
+  return ss+'s';
+}
+
+function claimDaily(){
+  dailyCheckInactive();
+  const r=dailyGet();
+  if(r.revoked){ toast(dailyRevokeText(r.reason)); renderDaily(); return; }
+  if(!dailyAvailable(r)){ toast('🎁 Next daily bonus in '+fmtDuration(dailyMsLeft(r))); renderDaily(); return; }
+  dailyMutate(rec=>{
+    const now=Date.now();
+    const availableAt = rec.lastClaim==null ? now : rec.lastClaim+DAY_MS;
+    const elapsed = Math.max(0, now-availableAt);
+    const missed = Math.floor(elapsed/DAY_MS);          // full days let slip beyond the first offer
+    const lag = elapsed % DAY_MS;                        // time from the latest reset to this claim
+    rec.offers += 1 + missed;
+    rec.claims += 1;
+    if(lag <= FAST_MS) rec.fast += 1;                   // claimed within 2h of the latest reset
+    rec.lags = (rec.lags||[]).concat(lag).slice(-DAILY_LAG_WINDOW);
+    rec.lastClaim = now;
+    // airdrop-farmer / bot signature: collects nearly every bonus, nearly always fast,
+    // AND with machine-like timing consistency (low lag jitter). The jitter gate spares
+    // eager humans — their claim lag varies day to day, a script's barely moves.
+    if(rec.claims >= DAILY_MIN_SAMPLE){
+      const collectRate = rec.claims/rec.offers, fastRate = rec.fast/rec.claims;
+      const machineLike = rec.lags.length >= DAILY_MIN_SAMPLE && dailyStdDev(rec.lags) < DAILY_JITTER_MS;
+      if(collectRate > DAILY_COLLECT_LIMIT && fastRate > DAILY_FAST_LIMIT && machineLike){ rec.revoked=true; rec.reason='bot'; }
+    }
+  });
+  boxes++; updateHUD(); renderDaily();
+  const gift=document.getElementById('daily-gift');
+  if(gift){ gift.animate([{transform:'scale(1)'},{transform:'scale(1.18)'},{transform:'scale(1)'}],{duration:420}); confettiBurst(gift, 26, false); }
+  toast('🎁 Daily bonus claimed — +1 Seedbox!');
+  Forest.event('daily_bonus_claim',{});
+}
+
+// click the present: claim when ready, otherwise surface the status
+function onDailyGiftClick(){
+  dailyCheckInactive();
+  const r=dailyGet();
+  if(r.revoked){ toast(dailyRevokeText(r.reason)); renderDaily(); return; }
+  if(dailyAvailable(r)){ claimDaily(); return; }
+  toast('🎁 Next daily bonus in '+fmtDuration(dailyMsLeft(r)));
+}
+
+function renderDaily(){
+  dailyMigrateToWallet();
+  dailyCheckInactive();
+  const r=dailyGet();
+  const gift=document.getElementById('daily-gift'); if(!gift) return;
+  const timer=document.getElementById('daily-timer');
+  const avail = dailyAvailable(r) && !r.revoked;
+  gift.classList.toggle('ready', avail);
+  gift.classList.toggle('revoked', !!r.revoked);
+  gift.style.cursor = avail ? 'pointer' : 'default';   // only advertise as clickable when claimable
+  if(r.revoked){
+    timer.textContent = r.reason==='bot' ? 'OFF' : 'PAUSED';
+    gift.setAttribute('data-tip', dailyRevokeText(r.reason));
+  } else if(avail){
+    timer.textContent = 'READY!';
+    gift.setAttribute('data-tip', 'Your free Seedbox is ready — click to claim!');
+  } else {
+    timer.textContent = fmtDuration(dailyMsLeft(r));
+    gift.setAttribute('data-tip', 'Come back daily for a free Seedbox. Next one in '+fmtDuration(dailyMsLeft(r))+'.');
+  }
+}
+
 buildGrid(); updateHUD(); updateLevelHUD();
+dailyCheckInactive(); renderDaily();
+// keep the present's timer ticking live
+setInterval(renderDaily, 1000);
+// gentle nudge on login if the daily bonus is waiting
+setTimeout(()=>{ if(dailyAvailable(dailyGet())) toast('🎁 Daily login bonus ready — click the present!'); }, 1800);
 
 /* hover popups for any element carrying data-tip (growth-bonus descriptions etc.) */
 (function(){
@@ -1359,7 +1954,7 @@ buildGrid(); updateHUD(); updateLevelHUD();
     tip.style.left=Math.max(pad,x)+'px'; tip.style.top=Math.max(pad,y)+'px';
   }
   document.addEventListener('mouseover',e=>{ const t=e.target.closest('[data-tip]'); if(t){ tip.textContent=t.getAttribute('data-tip'); tip.style.display='block'; place(e); } });
-  document.addEventListener('mousemove',e=>{ if(tip.style.display==='block') place(e); });
+  document.addEventListener('mousemove',e=>{ if(tip.style.display==='block'){ const t=e.target.closest('[data-tip]'); if(t) tip.textContent=t.getAttribute('data-tip'); place(e); } });
   document.addEventListener('mouseout',e=>{ const t=e.target.closest('[data-tip]'); if(t && !(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('[data-tip]'))) tip.style.display='none'; });
 })();
 // One tick = one game-minute. TICK_MS controls real-time pace.

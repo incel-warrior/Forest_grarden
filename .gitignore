@@ -1,0 +1,8 @@
+# Local Claude Code tooling / vendored skills — not part of the game
+.claude/
+.agents/
+skills-lock.json
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
