@@ -128,7 +128,7 @@
   }
   #playrow {
     display: flex; flex-direction: row; align-items: center; justify-content: space-between;
-    gap: clamp(14px, 3.5vw, 46px); margin-top: 30px;
+    gap: clamp(14px, 3.5vw, 46px); margin-top: calc(30px + 4vh);
   }
   #game-wrap {
     flex: 1 1 0; min-width: 0;
@@ -192,9 +192,9 @@
   .badge-fast { top:3px; right:3px; background:var(--diamond); color:#08313f; }
   .badge-aura { top:3px; left:3px; background:#2f8457; color:#eafff2; font-size:0.5rem; font-weight:800; cursor:help; }
   #hovertip { position:fixed; z-index:500; max-width:230px; padding:8px 10px; border-radius:8px;
-              background:rgba(16,26,20,0.97); color:#e8f3ea; font-size:0.72rem; line-height:1.3;
+              background:rgba(16,26,20,0.97); color:#e8f3ea; font-size:0.72rem; line-height:1.5;
               border:1px solid rgba(120,200,150,0.4); box-shadow:0 4px 16px rgba(0,0,0,0.5);
-              pointer-events:none; display:none; }
+              pointer-events:none; display:none; white-space:pre-line; }
 
   .progress-ring { position:absolute; z-index:3; bottom:6px; left:50%; transform:translateX(-50%); width:70px; height:6px; background:rgba(0,0,0,0.55); border-radius:3px; overflow:hidden; border:1px solid rgba(0,0,0,0.6); }
   .progress-fill { height:100%; transition: width 0.4s ease; }
@@ -204,7 +204,7 @@
   /* ── RAILS (around the frame) + big action buttons ── */
   .rail { display: flex; gap: clamp(20px, 5vw, 44px); }
   .rail.left, .rail.right { flex-direction: column; flex: 0 0 auto; }
-  .rail.bottom { flex-direction: row; justify-content: center; margin-top: auto; padding-top: 18px; }
+  .rail.bottom { flex-direction: row; justify-content: center; margin-top: clamp(14px, 3.5vw, 46px); }
 
   .tool-btn {
     width: clamp(72px, 17vw, 165px); height: clamp(72px, 17vw, 165px);
@@ -259,6 +259,70 @@
   .btn-close { background:var(--panel); border-color:var(--border); color:var(--text); }
   .btn-buy   { background:var(--berry); border-color:var(--berry-lt); color:#fff; }
   .btn-buy:disabled { opacity:0.5; cursor:not-allowed; }
+
+  /* ── ONBOARDING (2-page carousel) ── */
+  .modal.onboard { width:min(440px,94vw); text-align:center;
+    background:linear-gradient(180deg,#11241a,#0a1610); border-color:#1f3a2a; }
+  .onboard-page { animation: obFade .25s ease; }
+  @keyframes obFade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+  .modal h2.ob-maintitle { font-family:'Press Start 2P',monospace; font-size:1.4rem; color:#33E8B3;
+    text-shadow:2px 2px 0 #000; letter-spacing:0.5px; text-align:center; margin:4px 0 12px; line-height:1.3; }
+  .modal h2.ob-maintitle .s { color:var(--berry); }
+  .ob-title { font-family:'Press Start 2P',monospace; font-size:1.15rem; text-align:center; margin:4px 0 10px;
+    background:linear-gradient(180deg,#ffe680,#e8b53d 55%,#c9882a); -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent; color:#e8b53d; filter:drop-shadow(0 0 10px rgba(255,210,63,0.45)); letter-spacing:1px; line-height:1.3; }
+  .ob-sub { text-align:center; color:#cfe3cd; font-size:0.82rem; line-height:1.5; margin-bottom:14px; }
+  .ob-sub b { color:#33E8B3; }
+  .ob-features { display:flex; flex-direction:column; gap:9px; margin-bottom:6px; }
+  .ob-feat { display:flex; align-items:center; gap:11px; text-align:left;
+    background:rgba(0,0,0,0.30); border:1px solid rgba(120,200,150,0.12); border-radius:12px; padding:11px 13px; }
+  .ob-fi { font-size:1.3rem; width:38px; height:38px; flex:0 0 38px; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,0.05); border-radius:10px; }
+  .ob-ft { font-size:0.82rem; color:#cfe3cd; line-height:1.4; }
+  .ob-ft b { color:#fff; }
+  .ob-open { font-family:'Press Start 2P',monospace; font-size:0.8rem; color:#33E8B3; text-align:center;
+    letter-spacing:1px; margin:6px 0 12px; text-shadow:0 0 8px rgba(51,232,179,0.4); }
+  .ob-badge { display:inline-block; background:rgba(255,210,63,0.12); border:1px solid rgba(255,210,63,0.5); color:#ffd23f;
+    border-radius:20px; padding:6px 14px; font-size:0.72rem; font-weight:800; margin-bottom:12px; }
+  .ob-activation { text-align:center; color:#cfe3cd; font-size:0.82rem; margin-bottom:4px; }
+  .ob-activation b { color:#ffd23f; }
+  .ob-activation s { color:var(--text-dim); }
+  .ob-bonus { text-align:center; color:#7ed321; font-size:0.74rem; margin:2px 0 4px; }
+  .ob-balance { text-align:center; color:var(--text-dim); font-size:0.7rem; margin-top:8px; }
+  .ob-balance span { color:#cfe3cd; }
+  .ob-btn-gold { background:linear-gradient(180deg,#ffe070,#e3a82a); border:none; color:#3a2a08;
+    text-shadow:0 1px 0 rgba(255,255,255,0.3); box-shadow:0 0 16px rgba(255,200,60,0.45), 0 4px 0 #a9781c;
+    font-family:'Press Start 2P',monospace; }
+  .ob-btn-gold:hover { filter:brightness(1.06); }
+  .ob-btn-gold:active { transform:translateY(2px); box-shadow:0 0 16px rgba(255,200,60,0.45), 0 2px 0 #a9781c; }
+  .ob-btn-gold:disabled { opacity:0.55; cursor:not-allowed; box-shadow:none; }
+  .ob-activate { font-size:0.85rem; padding:14px; letter-spacing:1px; }
+  .ob-btn-back { background:none; border:none; color:var(--text-dim); margin-top:8px; font-size:0.74rem; }
+  .ob-btn-back:hover { color:var(--text); }
+  .ob-dots { display:flex; gap:7px; justify-content:center; margin:14px 0 4px; }
+  .ob-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.18); }
+  .ob-dot.active { background:#ffd23f; box-shadow:0 0 6px rgba(255,210,63,0.7); }
+  .ob-friend { margin:8px 0 2px; }
+  .ob-friend-link { background:rgba(255,210,63,0.07); border:1px solid rgba(255,210,63,0.35); border-radius:10px;
+    width:100%; padding:11px; color:#ffd23f; font-weight:800; font-size:0.78rem; cursor:pointer; line-height:1.4; }
+  .ob-friend-link u { text-underline-offset:2px; }
+  .ob-friend-link:hover { background:rgba(255,210,63,0.12); }
+  .ob-friend-form { margin-top:9px; }
+
+  /* shared referral bits (code box + redeem input) */
+  .ref-code-box { display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35);
+    border:2px dashed var(--gold); border-radius:8px; padding:14px; margin:6px 0 4px; }
+  .ref-code { font-family:'Press Start 2P',monospace; font-size:1rem; color:var(--seed); letter-spacing:1px; }
+  .ref-redeem-row { display:flex; gap:8px; }
+  .ref-redeem-row input { flex:1; min-width:0; background:var(--panel); border:2px solid var(--border); border-radius:6px;
+    color:var(--text); padding:9px; font-family:'Press Start 2P',monospace; font-size:0.58rem; text-transform:uppercase; }
+  .ref-redeem-row input:focus { border-color:var(--leaf); outline:none; }
+  .ref-apply { background:var(--leaf-dk); border:2px solid var(--leaf); color:#fff; border-radius:6px;
+    padding:0 14px; cursor:pointer; font-weight:800; font-size:0.78rem; white-space:nowrap; }
+  #redeem-status { font-size:0.72rem; margin-top:7px; min-height:1rem; color:var(--text-dim); }
+  #redeem-status.ok { color:var(--leaf); } #redeem-status.err { color:var(--berry-lt); }
+  #buy-status { font-size:0.74rem; text-align:center; margin-top:10px; min-height:1rem; color:var(--text-dim); line-height:1.35; }
+  #buy-status.ok { color:var(--leaf); } #buy-status.err { color:var(--berry-lt); }
 
   #toast { position:fixed; top:120px; left:50%; transform:translateX(-50%) translateY(-10px);
     background:rgba(8,18,11,0.95); border:2px solid var(--border); color:var(--text);
@@ -407,33 +471,58 @@
   #vault-status { text-align:center; font-size:0.76rem; margin-top:13px; min-height:1rem; color:var(--text-dim); line-height:1.35; }
   #vault-status.err { color:var(--berry-lt); }
   #vault-status.ok  { color:var(--leaf); }
-
+  #vault-wd-limit { display:flex; justify-content:space-between; align-items:center;
+    font-size:0.68rem; color:var(--text-dim); margin-top:9px; padding-top:9px;
+    border-top:1px solid rgba(120,200,150,0.15); }
+  #vault-wd-limit .wd-used { font-family:'Press Start 2P',monospace; font-size:0.54rem; color:var(--leaf); }
+  #vault-wd-limit .wd-used.wd-warn { color:var(--berry-lt); }
   /* ── DAILY LOGIN BONUS (present widget between coins & Seedbox) ── */
+  /* compact, frameless daily-bonus present — fixed in the open area right of the XP bar */
   .daily-gift {
-    width: clamp(72px, 17vw, 165px);
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
-    background: linear-gradient(180deg, var(--panel-lt), var(--panel));
-    border:3px solid var(--gold); border-radius:16px;
-    padding:10px 6px; cursor:pointer;
-    box-shadow:0 4px 0 rgba(0,0,0,0.5);
-    transition: transform .08s, box-shadow .15s, border-color .12s, filter .12s;
+    position:fixed; top:123px; right:38px; z-index:90;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    background:none; border:none; padding:0; cursor:default;
+    transition: transform .1s, filter .12s;
   }
-  .daily-gift:hover { transform:translateY(-2px); filter:brightness(1.08); }
-  .daily-gift:active { transform:translateY(0); box-shadow:0 1px 0 rgba(0,0,0,0.5); }
-  .daily-gift .dg-icon { width:clamp(34px,8vw,66px); height:clamp(34px,8vw,66px); display:flex; }
+  .daily-gift .dg-timer { font-family:'Press Start 2P', monospace; font-size:0.54rem;
+                          color:#a9c6a3; text-align:center; line-height:1.1; white-space:nowrap; }
+  .daily-gift .dg-icon { width:clamp(52px,10.37vw,78px); height:clamp(52px,10.37vw,78px); display:flex;
+                         filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
   .daily-gift .dg-icon svg { width:100%; height:100%; display:block; }
-  .daily-gift .dg-label { font-family:'Press Start 2P', monospace; font-size:clamp(0.46rem,1.2vw,0.5rem);
-                          color:#ffe27a; text-align:center; line-height:1.4; letter-spacing:0.3px; }
-  .daily-gift .dg-timer { font-family:'Press Start 2P', monospace; font-size:clamp(0.48rem,1.3vw,0.56rem);
-                          color:#a9c6a3; text-align:center; }
-  .daily-gift.ready { box-shadow:0 0 16px rgba(255,210,63,0.65), 0 4px 0 rgba(0,0,0,0.5);
-                      animation: giftBob 1s ease-in-out infinite; }
+  .daily-gift.ready { animation: giftBob 1s ease-in-out infinite; }
   .daily-gift.ready .dg-timer { color:#7ed321; }
-  .daily-gift.ready .dg-icon { animation: giftShake 1.4s ease-in-out infinite; transform-origin:50% 90%; }
+  .daily-gift.ready .dg-icon { animation: giftWiggle 0.7s ease-in-out infinite; transform-origin:50% 90%;
+                               filter: drop-shadow(0 0 8px rgba(255,210,63,0.95)); }
+  .daily-gift.ready:hover { filter:brightness(1.15); }
   @keyframes giftBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
-  @keyframes giftShake { 0%,86%,100%{transform:rotate(0);} 90%{transform:rotate(-7deg);} 94%{transform:rotate(7deg);} }
-  .daily-gift.revoked { border-color:#7a3b3b; filter:grayscale(0.7); opacity:0.72; }
+  @keyframes giftWiggle {
+    0%,100% { transform:rotate(0deg); }
+    12%     { transform:rotate(-13deg); }
+    28%     { transform:rotate(12deg); }
+    44%     { transform:rotate(-10deg); }
+    60%     { transform:rotate(8deg); }
+    76%     { transform:rotate(-5deg); }
+    90%     { transform:rotate(3deg); }
+  }
+  .daily-gift.revoked { filter:grayscale(0.7); opacity:0.7; }
   .daily-gift.revoked .dg-timer { color:var(--berry-lt); }
+
+  /* frameless invite-a-friend button — fixed bottom-left, no panel/background */
+  .invite-btn { position:fixed; left:36px; bottom:32px; z-index:90;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    background:none; border:none; padding:0; cursor:pointer;
+    transition: transform .1s, filter .12s; }
+  .invite-btn:hover { transform:translateY(-2px); filter:brightness(1.12); }
+  .invite-btn .ib-icon { width:clamp(60px,11.5vw,84px); height:clamp(60px,11.5vw,84px);
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(180deg,var(--panel-lt),var(--panel));
+    border:3px solid var(--border); border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
+  .invite-btn:hover .ib-icon { border-color:var(--leaf); }
+  .invite-btn .ib-icon svg { width:64%; height:auto; display:block; }
+  .invite-btn .ib-label { font-family:'Press Start 2P',monospace; font-size:0.6rem; color:#e0503b;
+    font-weight:700; text-transform:uppercase; white-space:nowrap; letter-spacing:0.3px;
+    text-shadow:-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
+                -1px 0 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff; }
 
   /* respect reduced-motion: stop the perpetual ambient loops (keep static glow cues) */
   @media (prefers-reduced-motion: reduce) {
@@ -446,9 +535,41 @@
 <div id="backdrop"></div>
 
 <div id="topbar">
-  <h1 class="pixel"><span style="cursor:pointer;font-size:4.29rem;vertical-align:middle;line-height:1" onclick="openLeaderboard()" title="Leaderboard">🏆</span> FOREST <span class="s">GARDEN</span></h1>
+  <h1 class="pixel"><span style="cursor:pointer;font-size:5.58rem;vertical-align:middle;line-height:1" onclick="openLeaderboard()" title="Leaderboard">🏆</span> FOREST <span class="s">GARDEN</span></h1>
   <div class="spacer"></div>
   <div id="coins-stat" onclick="openVault()" title="Vault — deposit / withdraw"><span class="icon"><svg viewBox="0 0 64 58" aria-hidden="true"><g stroke="#21323a" stroke-width="2.6" stroke-linejoin="round"><ellipse cx="23" cy="42" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="35" rx="18" ry="7" fill="#ffc91a"/><ellipse cx="23" cy="28" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="21" rx="18" ry="7" fill="#ffc91a"/></g><g transform="rotate(-16 45 36)"><ellipse cx="45" cy="36" rx="15" ry="18" fill="#ffc91a" stroke="#21323a" stroke-width="2.8"/><ellipse cx="45" cy="36" rx="10" ry="12.5" fill="none" stroke="#21323a" stroke-width="2"/><text x="45" y="42.5" font-size="17" font-weight="900" text-anchor="middle" fill="#21323a" font-family="Arial, sans-serif">$</text></g></svg></span><span id="coins-display">0</span></div>
+</div>
+
+<!-- daily-bonus present: fixed in the open area to the right of the XP bar -->
+<div class="daily-gift" id="daily-gift" onclick="onDailyGiftClick()">
+  <span class="dg-timer" id="daily-timer">--</span>
+  <span class="dg-icon"><svg viewBox="0 0 48 48" aria-hidden="true">
+    <g fill="#ffd23f" stroke="#b5862a" stroke-width="1.6" stroke-linejoin="round">
+      <path d="M24 13 C19 4 9 5 12 12 C13.5 15.5 19.5 14.5 24 13Z"/>
+      <path d="M24 13 C29 4 39 5 36 12 C34.5 15.5 28.5 14.5 24 13Z"/>
+    </g>
+    <rect x="6.5" y="13" width="35" height="10" rx="2" fill="#d8392b" stroke="#7e1f17" stroke-width="2"/>
+    <rect x="10" y="22" width="28" height="20" rx="2" fill="#e0503b" stroke="#7e1f17" stroke-width="2"/>
+    <rect x="20.5" y="13" width="7" height="29" fill="#ffd23f" stroke="#b5862a" stroke-width="1.2"/>
+    <circle cx="24" cy="13.5" r="2.8" fill="#ffd23f" stroke="#b5862a" stroke-width="1.2"/>
+  </svg></span>
+</div>
+
+<!-- frameless invite-a-friend button, fixed bottom-left (not on any rail) -->
+<div class="invite-btn" id="invite-btn" onclick="openInvite()" title="Invite a friend">
+  <span class="ib-icon"><svg viewBox="0 0 64 64" aria-hidden="true">
+    <!-- person (square head + square body, bright green) -->
+    <g fill="#7ed321">
+      <rect x="14" y="6"  width="22" height="22" rx="5"/>
+      <rect x="6"  y="32" width="40" height="28" rx="6"/>
+    </g>
+    <!-- plus (red) with white halo to separate it from the body -->
+    <rect x="44" y="32" width="12" height="28" rx="3" fill="#fff"/>
+    <rect x="36" y="40" width="28" height="12" rx="3" fill="#fff"/>
+    <rect x="46.5" y="34.5" width="7" height="23" rx="2" fill="#e0503b"/>
+    <rect x="38.5" y="42.5" width="23" height="7" rx="2" fill="#e0503b"/>
+  </svg></span>
+  <span class="ib-label">INVITE</span>
 </div>
 
 <div id="stage">
@@ -479,25 +600,6 @@
     <div id="game-wrap"><div id="garden"></div></div>
 
     <div class="rail right">
-      <div class="daily-gift" id="daily-gift" onclick="onDailyGiftClick()">
-        <span class="dg-icon"><svg viewBox="0 0 48 48" aria-hidden="true">
-          <!-- bow -->
-          <g fill="#ffd23f" stroke="#b5862a" stroke-width="1.6" stroke-linejoin="round">
-            <path d="M24 13 C19 4 9 5 12 12 C13.5 15.5 19.5 14.5 24 13Z"/>
-            <path d="M24 13 C29 4 39 5 36 12 C34.5 15.5 28.5 14.5 24 13Z"/>
-          </g>
-          <!-- lid -->
-          <rect x="6.5" y="13" width="35" height="10" rx="2" fill="#d8392b" stroke="#7e1f17" stroke-width="2"/>
-          <!-- box -->
-          <rect x="10" y="22" width="28" height="20" rx="2" fill="#e0503b" stroke="#7e1f17" stroke-width="2"/>
-          <!-- vertical ribbon -->
-          <rect x="20.5" y="13" width="7" height="29" fill="#ffd23f" stroke="#b5862a" stroke-width="1.2"/>
-          <!-- knot -->
-          <circle cx="24" cy="13.5" r="2.8" fill="#ffd23f" stroke="#b5862a" stroke-width="1.2"/>
-        </svg></span>
-        <span class="dg-label">DAILY<br>BONUS</span>
-        <span class="dg-timer" id="daily-timer">--</span>
-      </div>
       <div class="tool-btn shop" id="tb-seedbox" title="Seedbox" onclick="openShop()"><span class="tool-icon"><svg viewBox="0 0 64 60" width="80%" height="80%" aria-hidden="true">
         <defs><radialGradient id="chestGlow" cx="50%" cy="40%" r="55%">
           <stop offset="0%" stop-color="#fff3b0"/><stop offset="45%" stop-color="#ffd23f"/><stop offset="100%" stop-color="#ffd23f" stop-opacity="0"/>
@@ -684,6 +786,10 @@
       <div class="vb-row"><span>Wallet Balance</span><span id="vault-wallet-amt">—</span></div>
       <div class="vb-wallet" id="vault-wallet">wallet not connected</div>
     </div>
+    <div id="vault-wd-limit">
+      <span>Daily Withdrawal</span>
+      <span class="wd-used" id="vault-wd-used">— / 1,000,000 🪙</span>
+    </div>
     <input id="vault-amt" type="number" min="0" step="any" inputmode="decimal" placeholder="Amount (e.g. 1.5)" />
     <div class="vault-actions">
       <button class="btn btn-deposit"  id="vault-deposit-btn"  onclick="doVault('deposit')">⬇ Deposit</button>
@@ -691,6 +797,83 @@
     </div>
     <div id="vault-status"></div>
     <button class="btn btn-close" onclick="closeOverlay('vault-overlay')">Close</button>
+  </div>
+</div>
+
+<!-- ONBOARDING: 2-page carousel — features intro (page 1) → activation gate (page 2) → success.
+     No background-dismiss: a new player must activate to start. -->
+<div class="overlay" id="onboard-overlay">
+  <div class="modal onboard">
+
+    <!-- PAGE 1 — intro / features -->
+    <div id="onboard-page1" class="onboard-page">
+      <h2 class="ob-maintitle">FOREST <span class="s">GARDEN</span></h2>
+      <p class="ob-sub">Grow your garden on Forest Protocol. Digital plants, real rewards.</p>
+      <div class="ob-features">
+        <div class="ob-feat"><span class="ob-fi">🌱</span><span class="ob-ft"><b>Plant &amp; harvest</b> crops.</span></div>
+        <div class="ob-feat"><span class="ob-fi"><svg viewBox="0 0 64 60" width="30" height="30" aria-hidden="true">
+          <defs><radialGradient id="obChestGlow" cx="50%" cy="40%" r="55%">
+            <stop offset="0%" stop-color="#fff3b0"/><stop offset="45%" stop-color="#ffd23f"/><stop offset="100%" stop-color="#ffd23f" stop-opacity="0"/>
+          </radialGradient></defs>
+          <ellipse cx="32" cy="28" rx="27" ry="19" fill="url(#obChestGlow)"/>
+          <g stroke="#3a2414" stroke-width="2.6" stroke-linejoin="round">
+            <polygon points="13,29 19,9 45,9 51,29" fill="#7a4a26"/>
+            <rect x="17" y="6" width="30" height="6" rx="1" fill="#e7b53d"/>
+            <line x1="32" y1="12" x2="32" y2="29" stroke="#e7b53d" stroke-width="2.6"/>
+          </g>
+          <path d="M13 31 q19 -11 38 0 q-6 7 -19 7 q-13 0 -19 -7Z" fill="#ffd23f" stroke="#caa12a" stroke-width="1"/>
+          <g fill="#ffe27a"><circle cx="22" cy="31" r="2"/><circle cx="32" cy="33" r="2.4"/><circle cx="42" cy="31" r="2"/></g>
+          <g stroke="#3a2414" stroke-width="2.6" stroke-linejoin="round">
+            <rect x="11" y="31" width="42" height="22" rx="1.5" fill="#7a4a26"/>
+            <rect x="9" y="31" width="46" height="6" fill="#e7b53d"/>
+            <rect x="9" y="47" width="46" height="6" fill="#e7b53d"/>
+            <rect x="9" y="31" width="5" height="22" fill="#e7b53d"/>
+            <rect x="50" y="31" width="5" height="22" fill="#e7b53d"/>
+          </g>
+          <rect x="28" y="39" width="8" height="9" rx="1.5" fill="#f2c14e" stroke="#3a2414" stroke-width="2"/>
+          <circle cx="32" cy="43" r="1.5" fill="#3a2414"/>
+        </svg></span><span class="ob-ft"><b>Open Seedboxes</b> for rare seeds, cures &amp; potions.</span></div>
+        <div class="ob-feat"><span class="ob-fi">💰</span><span class="ob-ft"><b>Cash out</b> $GARDEN to your wallet anytime.</span></div>
+        <div class="ob-feat"><span class="ob-fi">🤝</span><span class="ob-ft"><b>Invite friends</b> — earn <b>+10%</b> of every $GARDEN they earn.</span></div>
+      </div>
+      <div class="ob-dots"><span class="ob-dot active"></span><span class="ob-dot"></span></div>
+      <button class="btn ob-btn-gold" onclick="onboardGoto(2)">Next →</button>
+    </div>
+
+    <!-- PAGE 2 — activation gate -->
+    <div id="onboard-page2" class="onboard-page" style="display:none;">
+      <p class="ob-sub">Activate to start earning from your very first harvest.</p>
+      <p class="ob-activation">One-time activation · <b id="ob-cost">1,000 $GARDEN</b></p>
+      <p class="ob-bonus" id="ob-bonus" style="display:none;"></p>
+      <button class="btn ob-btn-gold ob-activate" id="buy-btn" onclick="startPurchase()">BUY &amp; ACTIVATE</button>
+      <div id="buy-status"></div>
+      <p class="ob-balance">Your balance: <span id="ob-balance">0 $GARDEN</span></p>
+      <div class="ob-friend">
+        <button class="ob-friend-link" id="ob-friend-link" onclick="toggleFriendCode()">🎁 Got a friend's code? <u>50% off activation →</u></button>
+        <div class="ob-friend-form" id="ob-friend-form" style="display:none;">
+          <div class="ref-redeem-row">
+            <input id="redeem-code" type="text" placeholder="GARDEN-XXXXX" autocomplete="off" spellcheck="false" />
+            <button class="ref-apply" onclick="applyRedeem()">Apply</button>
+          </div>
+          <div id="redeem-status"></div>
+        </div>
+      </div>
+      <div class="ob-dots"><span class="ob-dot"></span><span class="ob-dot active"></span></div>
+      <button class="btn ob-btn-back" onclick="onboardGoto(1)">← Back</button>
+      <button class="btn btn-close" id="onboard-preview-skip" style="display:none;" onclick="onboardBypass()">Enter Garden (preview)</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- INVITE A FRIEND — opened from the frameless bottom-left button -->
+<div class="overlay" id="invite-overlay" onclick="bgClose(event,'invite-overlay')">
+  <div class="modal onboard">
+    <h2 class="ob-title">🤝 INVITE A FRIEND</h2>
+    <p class="ob-sub">Share your code to earn <b>+10%</b> of every $GARDEN your friends earn.</p>
+    <div class="ref-code-box"><span class="ref-code" id="my-ref-code">GARDEN-—</span></div>
+    <button class="btn ob-btn-gold" onclick="copyReferral()">📋 Copy invite code</button>
+    <button class="btn btn-close" onclick="closeOverlay('invite-overlay')">Close</button>
   </div>
 </div>
 
@@ -764,8 +947,16 @@ window.addEventListener('message', (event)=>{
       if(snap.direction === 'sell' && snap.payToken){
         if(typeof snap.payToken.balance === 'number') walletTokenBalance = snap.payToken.balance;
         if(snap.payToken.symbol) walletTokenSymbol = snap.payToken.symbol;
-        renderVault();
+        renderVault(); if(typeof updateOnboardBalance==='function') updateOnboardBalance();
+      } else if(snap.direction === 'buy'){
+        onBuyQuote(snap);                         // starter-pack pricing
       }
+      if(data.status === 'success' || data.status === 'error') delete forestPending[data.id];
+      return;
+    }
+    if(method === 'forest.swap.buy'){
+      if(data.status === 'error') onBuyResult('error', data.error || {});
+      else onBuyResult(data.status, data.result || {});
       if(data.status === 'success' || data.status === 'error') delete forestPending[data.id];
       return;
     }
@@ -933,6 +1124,14 @@ const ICON_ACAI=`<svg viewBox="0 0 24 24" aria-hidden="true"><g stroke="#2e0f44"
 
 // crops from Plants_Forest_Garden.xlsx — categories: Crops(common) · Fruit(rare) · Berries(mythic, rarest)
 // lvl = level required to grow, drop = weight within category, yield = sell value
+// Growth stage icons per category: [early (<50%), late (50–99%)]
+// Crops leaf out → Fruit trees blossom → Berries vine/spread
+const STAGE_ICONS = {
+  common: ['🌱','🌿'],   // Crops
+  rare:   ['🌱','🌸'],   // Fruit
+  mythic: ['🌱','🍀'],   // Berries
+};
+
 const PLANTS = {
   // Staple Crops
   wheat:{rarity:'common',icon:'🌾',name:'Wheat',lvl:1,drop:0.50,yield:20},
@@ -988,6 +1187,30 @@ const vClass = v => VARIANT[v].cls;
 function auraTip(v, plant){
   const pct=Math.round(VARIANT[v].boost*100), sp=PLANTS[plant]?PLANTS[plant].name:'the same crop';
   return `${VARIANT[v].label}: +${pct}% growth speed for all ${sp} plants while this one is growing. The boost stops if it gets sick, is harvested, or is left past its harvest window.`;
+}
+function plotTip(p){
+  if(p.state==='empty') return '';
+  const pl=PLANTS[p.plant], cat=RARITY_NAME[pl.rarity];
+  const lines=[`${pl.icon} ${pl.name}  ·  ${cat}`];
+  const vl=VARIANT[p.variant].label;
+  if(vl){
+    const bp=Math.round(VARIANT[p.variant].boost*100);
+    lines.push(`${vl} seed${bp>0?' · +'+bp+'% grow boost':''}`);
+  }
+  if(p.state==='spoiled'){
+    lines.push('Spoiled — remove it');
+  } else if(p.sick){
+    lines.push(`⚠ Sick! Use a ${cat} cure`);
+  } else if(p.state==='growing'){
+    const pct=Math.min(100,Math.round((p.t/p.growT)*100));
+    const leftMs=Math.max(0,p.growT-p.t)*TICK_MS;
+    lines.push(`Growing · ${pct}%${leftMs>0?' · ~'+fmtDuration(leftMs)+' left':''}`);
+  } else if(p.state==='ready'){
+    const winMs=Math.max(0,RARITY[pl.rarity].windowMin-p.winT)*TICK_MS;
+    lines.push(`Ready to harvest!${winMs>0?' · ~'+fmtDuration(winMs)+' left':''}`);
+  }
+  lines.push(`Yield: ~${saleValue(p.plant,p.variant)} 🪙`);
+  return lines.join('\n');
 }
 /* ─── potion sale prices (Market, B39) ─── */
 const CURE_SELL   = { common:50, rare:90, mythic:130 };   // Crop / Fruit / Berry cure
@@ -1109,8 +1332,9 @@ function renderCell(idx){
       html+='<span class="glyph wilt">'+WILTED_SVG+'</span>';
     } else {
       let glyph;
-      if(p.state==='growing'&&p.t<p.growT*0.5) glyph='🌱';
-      else if(p.state==='growing') glyph='🌿';
+      const _stages = STAGE_ICONS[PLANTS[p.plant].rarity] || STAGE_ICONS.common;
+      if(p.state==='growing'&&p.t<p.growT*0.5) glyph=_stages[0];
+      else if(p.state==='growing') glyph=_stages[1];
       else glyph=PLANTS[p.plant].icon;
       html+=`<span class="glyph">${glyph}</span>`;
     }
@@ -1128,6 +1352,8 @@ function renderCell(idx){
     html+=`<div class="progress-ring"><div class="progress-fill pf-window" style="width:${w}%"></div></div>`;
   }
   el.innerHTML=html;
+  if(p.state!=='empty') el.setAttribute('data-tip', plotTip(p));
+  else el.removeAttribute('data-tip');
 }
 function renderAll(){ for(let i=0;i<plots.length;i++) renderCell(i); }
 
@@ -1225,6 +1451,7 @@ function spawnFx(idx,text){
 /* flashy coin-gain feedback (sale -> coins) */
 function coinGain(amount){
   totalCoinsEarned += amount; recordScore();   // tally session earnings + keep leaderboard live
+  referralAccrue(amount);                       // route the referrer's 10% (scaffold ledger; backend settles)
   const el=document.getElementById('coins-stat'); if(!el) return;
   el.classList.remove('gain'); void el.offsetWidth; el.classList.add('gain');
   const r=el.getBoundingClientRect();
@@ -1621,6 +1848,7 @@ function onPlayerIdentified(){
   }
   recordScore();
   dailyMigrateToWallet(); renderDaily();
+  const cEl=document.getElementById('my-ref-code'); if(cEl) cEl.textContent=myReferralCode();   // re-key code to wallet identity
   if(document.getElementById('lb-overlay').classList.contains('open')) renderLeaderboard();
 }
 
@@ -1688,6 +1916,16 @@ function openLeaderboard(){
 }
 
 /* ════════════════ VAULT (Forest Game Balance deposit / withdraw) ════════════════ */
+const VAULT_DAILY_WITHDRAW_LIMIT = 1_000_000;
+function vaultWdGet(){
+  try{
+    const today=new Date().toISOString().slice(0,10);
+    const d=JSON.parse(localStorage.getItem('fg_vault_wd')||'null');
+    if(!d||d.date!==today||d.wallet!==(walletAddress||'guest')) return {date:today,wallet:walletAddress||'guest',amount:0};
+    return d;
+  }catch(e){ return {date:new Date().toISOString().slice(0,10),wallet:walletAddress||'guest',amount:0}; }
+}
+function vaultWdAdd(n){ const d=vaultWdGet(); d.amount=(d.amount||0)+n; localStorage.setItem('fg_vault_wd',JSON.stringify(d)); }
 let vaultBusy = false;
 
 // the whole coins area is the (invisible) trigger — clicking it opens the vault directly
@@ -1726,6 +1964,12 @@ function renderVault(){
   } else {
     wEl.textContent = 'wallet not connected'; wEl.classList.add('off');
   }
+  const wdEl=document.getElementById('vault-wd-used');
+  if(wdEl){
+    const used=vaultWdGet().amount;
+    wdEl.textContent=used.toLocaleString()+' / '+VAULT_DAILY_WITHDRAW_LIMIT.toLocaleString()+' 🪙';
+    wdEl.className='wd-used'+(used>=VAULT_DAILY_WITHDRAW_LIMIT?' wd-warn':'');
+  }
   updateVaultButtons();
 }
 
@@ -1750,6 +1994,10 @@ function doVault(direction){
   if(direction==='withdraw' && num > coins){
     vaultStatus('Amount exceeds your balance.', 'err'); return;
   }
+  if(direction==='withdraw'){
+    const wdRemaining=Math.max(0,VAULT_DAILY_WITHDRAW_LIMIT-vaultWdGet().amount);
+    if(num>wdRemaining){ vaultStatus('Daily limit reached — 🪙'+wdRemaining.toLocaleString()+' remaining today.','err'); return; }
+  }
   vaultPendingAmount=num; vaultPendingDir=direction;
   vaultBusy=true; updateVaultButtons();
   vaultStatus((direction==='deposit'?'Depositing ':'Withdrawing ')+raw+' — confirm in your wallet…', '');
@@ -1767,7 +2015,7 @@ function onVaultResult(method, status, payload){
   if(status==='success'){
     // apply the move to the visible balance: deposit adds coins, withdraw removes them
     if(vaultPendingDir==='deposit') coins += vaultPendingAmount;
-    else if(vaultPendingDir==='withdraw') coins = Math.max(0, coins - vaultPendingAmount);
+    else if(vaultPendingDir==='withdraw'){ coins=Math.max(0,coins-vaultPendingAmount); vaultWdAdd(vaultPendingAmount); }
     updateHUD(); renderVault();
     vaultBusy=false; vaultPendingDir=null; updateVaultButtons();
     const inp=document.getElementById('vault-amt'); if(inp) inp.value='';
@@ -1928,7 +2176,7 @@ function renderDaily(){
     timer.textContent = r.reason==='bot' ? 'OFF' : 'PAUSED';
     gift.setAttribute('data-tip', dailyRevokeText(r.reason));
   } else if(avail){
-    timer.textContent = 'READY!';
+    timer.textContent = 'CLAIM';
     gift.setAttribute('data-tip', 'Your free Seedbox is ready — click to claim!');
   } else {
     timer.textContent = fmtDuration(dailyMsLeft(r));
@@ -1936,8 +2184,178 @@ function renderDaily(){
   }
 }
 
+/* ════════════════ REFERRAL + STARTER-PACK ONBOARDING ════════════════
+   FRONT-END SCAFFOLD. Every value-moving step here is server-side on the real
+   Forest trust model — the iframe can only *request*, never *authorize*. The
+   ReferralBackend hooks below mark exactly what the (planned) Railway backend
+   must do. See .claude/skills/html-playkit/references/{identity,game-actions}.md.
+
+   Decisions wired in:
+   • 10% referral reward basis = in-game 🪙 coin earnings (placeholder ledger).
+   • 50% starter discount = the project-funded half (500 $GARDEN) arrives as a
+     Game-Balance CREDIT SETTLEMENT funded by the Game Vault (backend-signed). */
+const STARTER_PACK      = 1000;   // $GARDEN required to start a new game
+const REFERRAL_DISCOUNT = 0.5;    // 50% off the first pack with a valid code
+const REFERRAL_REWARD   = 0.10;   // 10% of a referee's coin earnings → referrer
+const REF_KEY = 'fg_referral';
+function refLoad(){ try{ return JSON.parse(localStorage.getItem(REF_KEY)) || {}; }catch(e){ return {}; } }
+function refSave(s){ try{ localStorage.setItem(REF_KEY, JSON.stringify(s)); }catch(e){} }
+// PLACEHOLDER code, derived from the local player id so it's stable in preview.
+// BACKEND TODO: mint the canonical code on the VERIFIED userId from the identity
+// handshake (forest.identity.code → /identity/redeem), NOT the display-only wallet
+// address — the address is player-rewritable and unsafe for accounting/payouts.
+function myReferralCode(){
+  const id = playerId(); let h=0;
+  for(let i=0;i<id.length;i++){ h=(h*31 + id.charCodeAt(i))>>>0; }
+  return 'GARDEN-' + h.toString(36).toUpperCase().padStart(5,'0').slice(0,5);
+}
+function isEmbedded(){ try{ return window.parent && window.parent !== window; }catch(e){ return true; } }
+
+const ReferralBackend = {
+  // Validate a friend's code being redeemed for the 50% discount.
+  // BACKEND TODO: confirm the code exists, isn't the redeemer's own, and the
+  // redeemer hasn't already used one (first-purchase only).
+  async validateCode(code){ return { valid: !!(code && code.trim()), discountPct: REFERRAL_DISCOUNT }; },
+  // Grant the project-funded half (e.g. 500 $GARDEN) after the user buys their half.
+  // BACKEND TODO: forest.game.action.authorize({actionId, debitLimitAmount:"0"}) then
+  // POST /campaigns/{projectId}/html/settlements (HMAC-signed, creditAmount = grant in
+  // base units), funded by the Game Vault. The iframe CANNOT mint credit → pending:true.
+  async grantStarterHalf(actionId, displayAmount){ return { settled:false, pending:true }; },
+  // Route the referrer's 10% of this referee's coin earnings.
+  // BACKEND TODO: attribute to the referrer's verified userId and credit via a
+  // Game-Vault-funded settlement (coins → $GARDEN per your economy).
+  async accrue(referrerCode, coinAmount){ return true; },
+};
+
+let onboardRedeem = null;                 // {code, discountPct} once a friend code is applied
+let buyBusy = false, buyPhase = 'idle';   // idle → quoting → buying → done
+let buyTargetTokens = STARTER_PACK;       // $GARDEN the user actually buys (full or half)
+
+function maybeShowOnboarding(){
+  const cEl = document.getElementById('my-ref-code'); if(cEl) cEl.textContent = myReferralCode();
+  if(refLoad().purchased) return;         // already activated → no gate
+  if(!isEmbedded()){ const sk=document.getElementById('onboard-preview-skip'); if(sk) sk.style.display='block'; }
+  onboardGoto(1);                          // carousel always opens on the intro
+  openOverlay('onboard-overlay');
+}
+// carousel navigation: 1 = intro, 2 = activation
+function onboardGoto(n){
+  document.getElementById('onboard-page1').style.display = (n===1) ? 'block' : 'none';
+  document.getElementById('onboard-page2').style.display = (n===2) ? 'block' : 'none';
+  if(n===2){ updateOnboardBalance(); renderStarterSummary(); }
+}
+// open the frameless bottom-left invite button's share popup
+function openInvite(){
+  const cEl = document.getElementById('my-ref-code'); if(cEl) cEl.textContent = myReferralCode();
+  openOverlay('invite-overlay');
+}
+function updateOnboardBalance(){
+  const el = document.getElementById('ob-balance'); if(!el) return;
+  el.textContent = (walletTokenBalance!=null ? fmtToken(walletTokenBalance) : '0') + ' $' + (walletTokenSymbol||'GARDEN');
+}
+function toggleFriendCode(){
+  const f = document.getElementById('ob-friend-form'); if(!f) return;
+  const show = f.style.display === 'none';
+  f.style.display = show ? 'block' : 'none';
+  if(show){ const i=document.getElementById('redeem-code'); if(i) i.focus(); }
+}
+function copyReferral(){
+  const code = myReferralCode();
+  const done = ()=>toast('📋 Invite code copied!');
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(code).then(done, done); }
+  else { try{ const t=document.createElement('textarea'); t.value=code; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }catch(e){} done(); }
+}
+async function applyRedeem(){
+  const code = (document.getElementById('redeem-code').value||'').trim().toUpperCase();
+  const st = document.getElementById('redeem-status');
+  if(!code){ st.textContent='Enter a code.'; st.className='err'; return; }
+  if(code === myReferralCode()){ st.textContent="You can't use your own code."; st.className='err'; return; }
+  const res = await ReferralBackend.validateCode(code);
+  if(!res.valid){ st.textContent='That code is not valid.'; st.className='err'; return; }
+  onboardRedeem = { code, discountPct:res.discountPct };
+  st.textContent = '✓ '+Math.round(res.discountPct*100)+'% off applied!'; st.className='ok';
+  renderStarterSummary();
+}
+function renderStarterSummary(){
+  const cost = document.getElementById('ob-cost'), bonus = document.getElementById('ob-bonus');
+  const total = STARTER_PACK;
+  if(onboardRedeem){
+    const youPay = Math.round(total*(1-onboardRedeem.discountPct));
+    const grant  = total - youPay;
+    if(cost)  cost.innerHTML = `<s>${total.toLocaleString()}</s> ${youPay.toLocaleString()} $GARDEN`;
+    if(bonus){ bonus.style.display='block'; bonus.textContent = `🎁 +${grant.toLocaleString()} $GARDEN referral bonus (granted on activation)`; }
+    buyTargetTokens = youPay;
+  } else {
+    if(cost)  cost.textContent = total.toLocaleString()+' $GARDEN';
+    if(bonus) bonus.style.display='none';
+    buyTargetTokens = total;
+  }
+}
+function buyStatus(msg, kind){ const el=document.getElementById('buy-status'); if(!el) return; el.textContent=msg||''; el.className=kind||''; }
+function buyFail(msg){ buyBusy=false; buyPhase='idle'; const b=document.getElementById('buy-btn'); if(b) b.disabled=false; buyStatus(msg,'err'); }
+
+// Real swap through the player's own wallet. Quote first to read the BNB→$GARDEN
+// rate, then buy the BNB worth our target token count (with headroom for drift).
+function startPurchase(){
+  if(buyBusy) return;
+  if(!walletAddress){ buyStatus('Connect your wallet on Forest to activate.','err'); return; }
+  buyBusy=true; buyPhase='quoting'; const b=document.getElementById('buy-btn'); if(b) b.disabled=true;
+  buyStatus('Fetching price…','');
+  callForest('forest.swap.quote', { amount:'0.01', direction:'buy', slippage:0.5 });
+}
+function onBuyQuote(snap){
+  if(buyPhase !== 'quoting') return;
+  const q = snap.quote; if(!q) return;     // base snapshot without a price yet — wait
+  let payPerToken = q.payPerReceive || (q.receivePerPay ? 1/q.receivePerPay : null);
+  if(!payPerToken){ buyFail('Could not price the swap. Try again.'); return; }
+  buyPhase='buying';
+  const bnb = payPerToken * buyTargetTokens * 1.01;            // +1% headroom
+  const amount = bnb.toFixed(8).replace(/0+$/,'').replace(/\.$/,'') || '0';
+  buyStatus('Confirm the purchase in your wallet…','');
+  callForest('forest.swap.buy', { amount, slippage:1 });
+}
+function onBuyResult(status, payload){
+  if(buyPhase !== 'buying') return;
+  if(status==='pending'){ buyStatus('Purchase submitted — confirm in your wallet…',''); return; }
+  if(status==='hash'){ buyStatus('Transaction sent, confirming on-chain…',''); return; }
+  if(status==='success'){ buyPhase='done'; completePurchase(); return; }
+  if(status==='error'){ buyFail((payload&&payload.message)?payload.message:'Purchase failed. Please try again.'); }
+}
+async function completePurchase(){
+  const s = refLoad(); s.purchased=true;
+  if(onboardRedeem){
+    s.enteredCode = onboardRedeem.code;
+    const grant = STARTER_PACK - buyTargetTokens;
+    const actionId = (crypto.randomUUID ? crypto.randomUUID() : 'act-'+Date.now());
+    const res = await ReferralBackend.grantStarterHalf(actionId, String(grant));
+    s.grantPending = !res.settled;        // stays pending until the backend settles the credit
+  }
+  refSave(s);
+  buyBusy=false; buyStatus('','');
+  closeOverlay('onboard-overlay');        // enter the game; invite is the bottom-left button
+  toast('✅ Activated! Welcome to the garden 🌱');
+  if(s.grantPending){
+    setTimeout(()=>toast('🎁 Your '+(STARTER_PACK-buyTargetTokens)+' $GARDEN referral bonus is pending (credited by backend).'), 1500);
+  }
+}
+// Preview/dev only — never shown inside the Forest iframe (real gate stays intact there).
+function onboardBypass(){
+  const s = refLoad(); s.purchased=true; refSave(s);
+  closeOverlay('onboard-overlay'); toast('🌱 Preview mode — activation skipped.');
+}
+// 10% of a referee's coin earnings owed to their referrer. No deduction from the
+// player — the bonus is project-funded. This local counter is the pickup the
+// backend reads to settle the referrer (Game-Vault-funded credit).
+function referralAccrue(amount){
+  const s = refLoad(); if(!s.enteredCode) return;
+  const cut = Math.round(amount * REFERRAL_REWARD); if(cut<=0) return;
+  s.owedToReferrer = (s.owedToReferrer||0) + cut; refSave(s);
+  ReferralBackend.accrue(s.enteredCode, cut);
+}
+
 buildGrid(); updateHUD(); updateLevelHUD();
 dailyCheckInactive(); renderDaily();
+maybeShowOnboarding();
 // keep the present's timer ticking live
 setInterval(renderDaily, 1000);
 // gentle nudge on login if the daily bonus is waiting
