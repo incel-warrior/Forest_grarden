@@ -93,7 +93,9 @@
   .stat .icon { font-size: 1rem; }
   .spacer { flex: 1; }
   /* level band between the top bar and the garden */
-  #level-band { display:flex; align-items:center; gap:14px; width:min(470px,94%); margin:6px auto 0; }
+  /* pinned so it stays visible if #stage scrolls (content can exceed the stage height) */
+  #level-band { display:flex; align-items:center; gap:14px; width:min(470px,94%); margin:6px auto 0;
+                position:sticky; top:0; z-index:2; }
   .lvl-label { font-family:'Press Start 2P', monospace; font-size:1.08rem; color:#bfe9c2; text-shadow:1px 1px 0 #000; white-space:nowrap; }
   #xp-bar { flex:1; height:21px; background:rgba(0,0,0,0.45); border:3px solid rgba(255,255,255,0.3); border-radius:10px; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,0.35); }
   #xp-fill { height:100%; width:0%; background:linear-gradient(90deg,#7ed321,#ffd23f); transition:width .35s ease; }
@@ -477,23 +479,27 @@
   #vault-wd-limit .wd-used { font-family:'Press Start 2P',monospace; font-size:0.54rem; color:var(--leaf); }
   #vault-wd-limit .wd-used.wd-warn { color:var(--berry-lt); }
   /* ── DAILY LOGIN BONUS (present widget between coins & Seedbox) ── */
-  /* compact, frameless daily-bonus present — fixed in the open area right of the XP bar */
+  /* daily-bonus present — round button bottom-right (mirrors the Invite button) */
   .daily-gift {
-    position:fixed; top:123px; right:38px; z-index:90;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    position:fixed; right:36px; bottom:32px; z-index:90;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
     background:none; border:none; padding:0; cursor:default;
     transition: transform .1s, filter .12s;
   }
-  .daily-gift .dg-timer { font-family:'Press Start 2P', monospace; font-size:0.54rem;
-                          color:#a9c6a3; text-align:center; line-height:1.1; white-space:nowrap; }
-  .daily-gift .dg-icon { width:clamp(52px,10.37vw,78px); height:clamp(52px,10.37vw,78px); display:flex;
-                         filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
-  .daily-gift .dg-icon svg { width:100%; height:100%; display:block; }
+  .daily-gift .dg-icon { width:clamp(60px,11.5vw,84px); height:clamp(60px,11.5vw,84px);
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(180deg,var(--panel-lt),var(--panel));
+    border:3px solid var(--border); border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
+  .daily-gift .dg-icon svg { width:64%; height:auto; display:block; }
+  .daily-gift .dg-timer { font-family:'Press Start 2P', monospace; font-size:0.78rem; font-weight:700;
+    color:#e0503b; text-align:center; line-height:1.1; white-space:nowrap;
+    text-shadow:-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
+                -1px 0 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff; }
   .daily-gift.ready { animation: giftBob 1s ease-in-out infinite; }
-  .daily-gift.ready .dg-timer { color:#7ed321; }
-  .daily-gift.ready .dg-icon { animation: giftWiggle 0.7s ease-in-out infinite; transform-origin:50% 90%;
-                               filter: drop-shadow(0 0 8px rgba(255,210,63,0.95)); }
-  .daily-gift.ready:hover { filter:brightness(1.15); }
+  .daily-gift.ready .dg-timer { color:#e0503b; }
+  .daily-gift.ready .dg-icon { border-color:#ffd23f; box-shadow:0 0 14px rgba(255,210,63,0.7), 0 4px 12px rgba(0,0,0,0.4); }
+  .daily-gift.ready .dg-icon svg { animation: giftWiggle 0.7s ease-in-out infinite; transform-origin:50% 90%; }
+  .daily-gift.ready:hover { filter:brightness(1.12); }
   @keyframes giftBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
   @keyframes giftWiggle {
     0%,100% { transform:rotate(0deg); }
@@ -519,14 +525,14 @@
     border:3px solid var(--border); border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
   .invite-btn:hover .ib-icon { border-color:var(--leaf); }
   .invite-btn .ib-icon svg { width:64%; height:auto; display:block; }
-  .invite-btn .ib-label { font-family:'Press Start 2P',monospace; font-size:0.6rem; color:#e0503b;
+  .invite-btn .ib-label { font-family:'Press Start 2P',monospace; font-size:0.78rem; color:#e0503b;
     font-weight:700; text-transform:uppercase; white-space:nowrap; letter-spacing:0.3px;
     text-shadow:-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
                 -1px 0 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff; }
 
   /* respect reduced-motion: stop the perpetual ambient loops (keep static glow cues) */
   @media (prefers-reduced-motion: reduce) {
-    .daily-gift.ready, .daily-gift.ready .dg-icon, .star { animation: none !important; }
+    .daily-gift.ready, .daily-gift.ready .dg-icon svg, .star { animation: none !important; }
   }
 </style>
 </head>
@@ -540,9 +546,8 @@
   <div id="coins-stat" onclick="openVault()" title="Vault — deposit / withdraw"><span class="icon"><svg viewBox="0 0 64 58" aria-hidden="true"><g stroke="#21323a" stroke-width="2.6" stroke-linejoin="round"><ellipse cx="23" cy="42" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="35" rx="18" ry="7" fill="#ffc91a"/><ellipse cx="23" cy="28" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="21" rx="18" ry="7" fill="#ffc91a"/></g><g transform="rotate(-16 45 36)"><ellipse cx="45" cy="36" rx="15" ry="18" fill="#ffc91a" stroke="#21323a" stroke-width="2.8"/><ellipse cx="45" cy="36" rx="10" ry="12.5" fill="none" stroke="#21323a" stroke-width="2"/><text x="45" y="42.5" font-size="17" font-weight="900" text-anchor="middle" fill="#21323a" font-family="Arial, sans-serif">$</text></g></svg></span><span id="coins-display">0</span></div>
 </div>
 
-<!-- daily-bonus present: fixed in the open area to the right of the XP bar -->
+<!-- daily-bonus present: round button bottom-right, timer below the icon -->
 <div class="daily-gift" id="daily-gift" onclick="onDailyGiftClick()">
-  <span class="dg-timer" id="daily-timer">--</span>
   <span class="dg-icon"><svg viewBox="0 0 48 48" aria-hidden="true">
     <g fill="#ffd23f" stroke="#b5862a" stroke-width="1.6" stroke-linejoin="round">
       <path d="M24 13 C19 4 9 5 12 12 C13.5 15.5 19.5 14.5 24 13Z"/>
@@ -553,6 +558,7 @@
     <rect x="20.5" y="13" width="7" height="29" fill="#ffd23f" stroke="#b5862a" stroke-width="1.2"/>
     <circle cx="24" cy="13.5" r="2.8" fill="#ffd23f" stroke="#b5862a" stroke-width="1.2"/>
   </svg></span>
+  <span class="dg-timer" id="daily-timer">--</span>
 </div>
 
 <!-- frameless invite-a-friend button, fixed bottom-left (not on any rail) -->
