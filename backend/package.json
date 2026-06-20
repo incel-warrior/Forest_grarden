@@ -1,0 +1,17 @@
+{
+  "name": "forest-garden-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Trusted backend for Forest Garden — identity, referral, settlements, daily bonus, leaderboard.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
+  }
+}
