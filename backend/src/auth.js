@@ -9,12 +9,11 @@ export async function mintNonce() {
   await pool.query('INSERT INTO login_nonces(nonce) VALUES ($1)', [nonce]);
   return nonce;
 }
-export async function nonceExists(nonce) {
-  const r = await pool.query('SELECT 1 FROM login_nonces WHERE nonce = $1', [nonce]);
-  return r.rowCount > 0;
-}
+// Atomically consume a nonce: deletes and reports whether THIS call won the row.
+// Two concurrent redeems with the same nonce → only one gets true (no double-mint).
 export async function burnNonce(nonce) {
-  await pool.query('DELETE FROM login_nonces WHERE nonce = $1', [nonce]);
+  const r = await pool.query('DELETE FROM login_nonces WHERE nonce = $1 RETURNING nonce', [nonce]);
+  return r.rowCount === 1;
 }
 
 // Our own player session, keyed on the VERIFIED Forest userId.

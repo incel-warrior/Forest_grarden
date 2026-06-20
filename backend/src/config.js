@@ -19,6 +19,11 @@ export const config = {
   referralDiscountPct: 0.5,   // 50% off first pack with a code
   referralRewardPct: 0.10,    // 10% of a referee's coin earnings → referrer
 
+  // Game pace: one game-minute = TICK_MS real ms (matches the client's testing pace).
+  tickMs: Number(process.env.TICK_MS || 1000),
+  harvestGraceMs: 1500,                       // small grace so legit ready-harvests aren't blocked
+  vaultDailyWithdrawLimit: 1_000_000,         // server-enforced daily withdrawal cap (in-game coins)
+
   // Daily bonus (server-authoritative)
   dayMs: 24 * 60 * 60 * 1000,
   dailyFastWindowMs: 2 * 60 * 60 * 1000,   // claimed within 2h of becoming available = "fast"

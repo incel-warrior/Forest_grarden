@@ -36,6 +36,38 @@ export async function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_users_total_earned ON users (total_earned DESC);
   `);
 
+  // Server-authoritative economy columns (added idempotently to the existing table).
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS coins           BIGINT DEFAULT 1000;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS xp              BIGINT DEFAULT 0;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS seeds           JSONB  DEFAULT '{}'::jsonb;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS stock           JSONB  DEFAULT '{}'::jsonb;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS cures           JSONB  DEFAULT '{}'::jsonb;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS boosts          JSONB  DEFAULT '{}'::jsonb;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS plots           JSONB  DEFAULT '[]'::jsonb;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS withdraw_day    TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS withdraw_amount BIGINT DEFAULT 0;
+  `);
+
   // Sweep nonces older than 10 minutes so the table stays small.
   await pool.query(`DELETE FROM login_nonces WHERE created_at < now() - interval '10 minutes'`);
+}
+
+// Run fn inside a transaction with the user row locked (SELECT … FOR UPDATE),
+// preventing concurrent-request races on inventory/coins/claims.
+export async function withUserLock(userId, fn) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query('SELECT * FROM users WHERE user_id = $1 FOR UPDATE', [userId]);
+    if (!rows[0]) { await client.query('ROLLBACK'); throw new Error('user not found'); }
+    const result = await fn(client, rows[0]);
+    await client.query('COMMIT');
+    return result;
+  } catch (e) {
+    try { await client.query('ROLLBACK'); } catch {}
+    throw e;
+  } finally {
+    client.release();
+  }
 }
