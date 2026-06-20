@@ -126,11 +126,11 @@
     position: absolute; top: 84px; left: 0; right: 0; bottom: 0; z-index: 10;
     display: flex; flex-direction: column;
     padding: 0 20px 20px;   /* doubled side + bottom gap from the page border */
-    overflow: auto;
+    overflow: hidden;       /* everything is sized to fit the square — no scrollbar */
   }
   #playrow {
     display: flex; flex-direction: row; align-items: center; justify-content: space-between;
-    gap: clamp(14px, 3.5vw, 46px); margin-top: calc(30px + 4vh);
+    gap: clamp(14px, 3.5vw, 46px); margin-top: clamp(6px, 1.4vh, 16px);
   }
   #game-wrap {
     flex: 1 1 0; min-width: 0;
@@ -138,7 +138,7 @@
   }
   #garden {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px;
-    width: min(502px, 100%); aspect-ratio: 1;
+    width: min(502px, 100%, max(240px, calc(100vh - 300px))); aspect-ratio: 1;
     padding: 9px; border-radius: 8px;
     background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.45));
     border: 3px solid var(--border);
@@ -206,7 +206,7 @@
   /* ── RAILS (around the frame) + big action buttons ── */
   .rail { display: flex; gap: clamp(20px, 5vw, 44px); }
   .rail.left, .rail.right { flex-direction: column; flex: 0 0 auto; }
-  .rail.bottom { flex-direction: row; justify-content: center; margin-top: clamp(14px, 3.5vw, 46px); }
+  .rail.bottom { flex-direction: row; justify-content: center; margin-top: clamp(8px, 2vw, 18px); }
 
   .tool-btn {
     width: clamp(72px, 17vw, 165px); height: clamp(72px, 17vw, 165px);
@@ -271,8 +271,8 @@
     text-shadow:2px 2px 0 #000; letter-spacing:0.5px; text-align:center; margin:4px 0 12px; line-height:1.3; }
   .modal h2.ob-maintitle .s { color:var(--berry); }
   .ob-title { font-family:'Press Start 2P',monospace; font-size:1.15rem; text-align:center; margin:4px 0 10px;
-    background:linear-gradient(180deg,#ffe680,#e8b53d 55%,#c9882a); -webkit-background-clip:text; background-clip:text;
-    -webkit-text-fill-color:transparent; color:#e8b53d; filter:drop-shadow(0 0 10px rgba(255,210,63,0.45)); letter-spacing:1px; line-height:1.3; }
+    background:none; -webkit-text-fill-color:#e0503b; color:#e0503b;
+    text-shadow:2px 2px 0 #000; letter-spacing:1px; line-height:1.3; }
   .ob-sub { text-align:center; color:#cfe3cd; font-size:0.82rem; line-height:1.5; margin-bottom:14px; }
   .ob-sub b { color:#33E8B3; }
   .ob-features { display:flex; flex-direction:column; gap:9px; margin-bottom:6px; }
