@@ -922,6 +922,59 @@ function callForest(method, params={}){
   try{ window.parent.postMessage({ type:'FOREST_RPC_REQUEST', version:1, id, method, params }, '*'); }catch(e){}
   return id;
 }
+// Promise-based Forest RPC (resolves on terminal success/error) — used for the
+// identity handshake and action authorizations the backend needs.
+const forestResolvers = {};
+function callForestAsync(method, params={}, timeoutMs=20000){
+  return new Promise((resolve,reject)=>{
+    const id=requestId(); forestPending[id]=method;
+    const timer=setTimeout(()=>{ if(forestResolvers[id]){ delete forestResolvers[id]; reject(new Error('forest timeout: '+method)); } }, timeoutMs);
+    forestResolvers[id]={resolve,reject,timer};
+    try{ window.parent.postMessage({ type:'FOREST_RPC_REQUEST', version:1, id, method, params }, '*'); }
+    catch(e){ clearTimeout(timer); delete forestResolvers[id]; reject(e); }
+  });
+}
+
+/* ════════════════ BACKEND CLIENT (Railway) ════════════════
+   Wires the iframe to the trusted backend. Activates ONLY when the identity
+   handshake succeeds (real Forest iframe + Forest secrets live). Otherwise the
+   game falls back to its existing local behavior — nothing breaks offline/in preview. */
+const API_BASE = 'https://forest-garden-api-production.up.railway.app';
+const Backend = {
+  base: API_BASE, token: null, online: false, userId: null, code: null,
+  async api(path, { method='GET', body, auth=true }={}){
+    const headers = { 'Content-Type':'application/json' };
+    if(auth && this.token) headers['Authorization'] = 'Bearer '+this.token;
+    const res = await fetch(this.base+path, { method, headers, body: body?JSON.stringify(body):undefined });
+    if(!res.ok){ let d=''; try{ d=await res.text(); }catch(e){} const err=new Error(path+' '+res.status+' '+d); err.status=res.status; throw err; }
+    return res.json();
+  },
+  // identity handshake: nonce → forest.identity.code → /session/redeem → JWT
+  async connect(){
+    try{
+      const { nonce } = await this.api('/session/start', { method:'POST', auth:false });
+      const codeRes = await callForestAsync('forest.identity.code', { nonce });
+      if(!codeRes || !codeRes.code) throw new Error('no identity code');
+      const out = await this.api('/session/redeem', { method:'POST', auth:false, body:{ code:codeRes.code, nonce } });
+      this.token=out.token; this.userId=out.userId; this.code=out.code; this.online=true;
+      console.log('[backend] online as', out.userId);
+      return true;
+    }catch(e){ this.online=false; console.warn('[backend] offline —', e.message); return false; }
+  },
+  referralCode(){ return this.api('/referral/code'); },
+  redeemCode(code){ return this.api('/referral/redeem', { method:'POST', body:{ code } }); },
+  activate(actionId){ return this.api('/activate', { method:'POST', body:{ actionId } }); },
+  // economy methods (wired in the next phase, when testable in Forest):
+  state(){ return this.api('/state'); },
+  openBox(){ return this.api('/box/open', { method:'POST' }); },
+  buyBox(){ return this.api('/box/buy', { method:'POST' }); },
+  plant(idx,plant,variant){ return this.api('/plant', { method:'POST', body:{ idx, plant, variant } }); },
+  harvest(idx){ return this.api('/harvest', { method:'POST', body:{ idx } }); },
+  sell(kind,key,qty){ return this.api('/sell', { method:'POST', body:{ kind, key, qty } }); },
+  claimDaily(){ return this.api('/daily/claim', { method:'POST' }); },
+  checkWithdraw(amount){ return this.api('/vault/withdraw', { method:'POST', body:{ amount } }); },
+  leaderboard(){ return this.api('/leaderboard', { auth:false }); },
+};
 // pull the balance object out of either a balance-read result or a deposit/withdraw result
 function extractBalance(result){
   if(!result) return null;
@@ -947,6 +1000,13 @@ window.addEventListener('message', (event)=>{
   }
   if(data.type === 'FOREST_RPC_RESPONSE'){
     const method = forestPending[data.id];
+    // resolve any promise-based callForestAsync waiter (identity.code, action.authorize, …)
+    const _r = forestResolvers[data.id];
+    if(_r){
+      if(data.status === 'success'){ clearTimeout(_r.timer); delete forestResolvers[data.id]; delete forestPending[data.id]; _r.resolve(data.result||{}); return; }
+      if(data.status === 'error'){ clearTimeout(_r.timer); delete forestResolvers[data.id]; delete forestPending[data.id]; _r.reject(new Error((data.error&&data.error.message)||'forest error')); return; }
+      // pending/hash → keep waiting for the terminal response
+    }
     // a sell-direction quote snapshot carries the wallet's launched-token ($GARDEN) balance
     if(method === 'forest.swap.quote' && data.result && data.result.snapshot){
       const snap = data.result.snapshot;
@@ -2211,7 +2271,8 @@ function refSave(s){ try{ localStorage.setItem(REF_KEY, JSON.stringify(s)); }cat
 // handshake (forest.identity.code → /identity/redeem), NOT the display-only wallet
 // address — the address is player-rewritable and unsafe for accounting/payouts.
 function myReferralCode(){
-  const id = playerId(); let h=0;
+  if(Backend.online && Backend.code) return Backend.code;   // canonical server code when connected
+  const id = playerId(); let h=0;                            // local placeholder otherwise
   for(let i=0;i<id.length;i++){ h=(h*31 + id.charCodeAt(i))>>>0; }
   return 'GARDEN-' + h.toString(36).toUpperCase().padStart(5,'0').slice(0,5);
 }
@@ -2276,7 +2337,14 @@ async function applyRedeem(){
   const st = document.getElementById('redeem-status');
   if(!code){ st.textContent='Enter a code.'; st.className='err'; return; }
   if(code === myReferralCode()){ st.textContent="You can't use your own code."; st.className='err'; return; }
-  const res = await ReferralBackend.validateCode(code);
+  let res;
+  if(Backend.online){
+    // server validates (code exists, not self, first-purchase only)
+    try{ const r = await Backend.redeemCode(code); res = { valid:true, discountPct:r.discountPct }; }
+    catch(e){ st.textContent='That code is not valid.'; st.className='err'; return; }
+  } else {
+    res = await ReferralBackend.validateCode(code);
+  }
   if(!res.valid){ st.textContent='That code is not valid.'; st.className='err'; return; }
   onboardRedeem = { code, discountPct:res.discountPct };
   st.textContent = '✓ '+Math.round(res.discountPct*100)+'% off applied!'; st.className='ok';
@@ -2333,8 +2401,19 @@ async function completePurchase(){
     s.enteredCode = onboardRedeem.code;
     const grant = STARTER_PACK - buyTargetTokens;
     const actionId = (crypto.randomUUID ? crypto.randomUUID() : 'act-'+Date.now());
-    const res = await ReferralBackend.grantStarterHalf(actionId, String(grant));
-    s.grantPending = !res.settled;        // stays pending until the backend settles the credit
+    if(Backend.online){
+      // authorize an action in the iframe, then the backend settles the project-funded grant
+      try{
+        await callForestAsync('forest.game.action.authorize', { actionId, debitLimitAmount:'0' });
+        await Backend.activate(actionId);
+        s.grantPending = false;            // server settled the credit
+      }catch(e){ s.grantPending = true; }  // backend will reconcile on retry
+    } else {
+      const res = await ReferralBackend.grantStarterHalf(actionId, String(grant));
+      s.grantPending = !res.settled;       // local stub — pending until a real backend settles
+    }
+  } else if(Backend.online){
+    try{ await Backend.activate(); }catch(e){}   // mark activated server-side (no grant)
   }
   refSave(s);
   buyBusy=false; buyStatus('','');
@@ -2362,6 +2441,11 @@ function referralAccrue(amount){
 buildGrid(); updateHUD(); updateLevelHUD();
 dailyCheckInactive(); renderDaily();
 maybeShowOnboarding();
+// connect to the backend only inside the Forest iframe (preview/local stays offline → no hang).
+// On success the referral code shown switches to the canonical server code.
+if(isEmbedded()){
+  Backend.connect().then(ok=>{ if(ok){ const cEl=document.getElementById('my-ref-code'); if(cEl) cEl.textContent=myReferralCode(); } });
+}
 // keep the present's timer ticking live
 setInterval(renderDaily, 1000);
 // gentle nudge on login if the daily bonus is waiting
