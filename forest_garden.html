@@ -1446,6 +1446,7 @@ function handleClick(idx){
     const k=invKey(selSeed.plant,sv);
     if(!seeds[k]||seeds[k]<=0){toast('No more of that seed.');setTool('harvest');return;}
     if(PLANTS[selSeed.plant].lvl > level){ toast('🔒 Reach Level '+PLANTS[selSeed.plant].lvl+' to grow '+PLANTS[selSeed.plant].name+'.'); return; }
+    if(Backend.online){ onlinePlant(idx, selSeed.plant, sv); return; }
     seeds[k]--;
     const rar=PLANTS[selSeed.plant].rarity;
     Object.assign(p,{state:'growing',plant:selSeed.plant,variant:sv,t:0,growT:RARITY[rar].growMin,winT:0,sick:false,sickRolled:false,boosted:false});
@@ -1466,6 +1467,7 @@ function handleClick(idx){
   else if(tool==='harvest'){
     if(p.state==='spoiled'){ Object.assign(p,{state:'empty',plant:null,t:0,growT:0,winT:0,sick:false,boosted:false}); renderAll(); toast('🗑️ Cleared the spoiled crop.'); return; }
     if(p.state!=='ready'){toast(p.state==='empty'?'Empty plot — plant a seed 🎒':'Not ready yet.');return;}
+    if(Backend.online){ onlineHarvest(idx); return; }
     const xpGain=harvestXP(p.plant);
     addStock(p.plant,p.variant,1); spawnFx(idx,'+1 '+vName(p.variant)+PLANTS[p.plant].icon+'  +'+xpGain+' XP');
     Forest.event('harvest',{plant:p.plant,variant:p.variant,value:saleValue(p.plant,p.variant),xp:xpGain});
@@ -1652,7 +1654,79 @@ const TIER_RANK ={item:0,common:0,rare:1,mythic:2,legendary:3};
 let revealing=false, pendingItems=null, tapTimes=[];
 const FAST_CLICKS=3, FAST_WINDOW=1000;   // open if ≥3 clicks within 1 second
 
+/* ════════════════ ONLINE MODE (server-authoritative when Backend.online) ════════════════
+   Each economy action calls the backend and mirrors the authoritative result into the
+   local vars the UI renders from. Offline, the original local logic runs unchanged. */
+function replaceInv(target, src){ for(const k in target) delete target[k]; if(src) Object.assign(target, src); }
+function replaceBoosts(src){ boosts.rare=0; boosts.mythic=0; boosts.legendary=0; if(src) Object.assign(boosts, src); }
+// map a server loot descriptor → the reveal display shape (mirrors rollItem)
+function displayItem(it){
+  if(it.type==='seed'){
+    const catLabel=RARITY_NAME[PLANTS[it.plant].rarity].toUpperCase();
+    const label=it.variant==='common'?catLabel:VARIANT[it.variant].label.toUpperCase();
+    return { icon:PLANTS[it.plant].icon, name:vName(it.variant)+PLANTS[it.plant].name+' Seed', tier:it.variant, label, cls:vClass(it.variant) };
+  } else if(it.type==='cure'){
+    const r=it.rarity, icon=r==='common'?'💊':(r==='rare'?'🧪':'💉');
+    return { icon, name:RARITY_NAME[r]+' Cure', tier:'item', label:RARITY_NAME[r].toUpperCase()+' CURE' };
+  }
+  const t=it.tier; return { icon:POTION_SVG, name:cap(t)+' Growth Potion', tier:t, label:cap(t).toUpperCase()+' GROWTH', cls:vClass(t) };
+}
+// hydrate all local state from the server snapshot, then render
+function syncState(s){
+  if(!s) return;
+  coins=s.coins; boxes=s.boxes; level=s.level; xp=s.xp;
+  replaceInv(seeds, s.seeds); replaceInv(stock, s.stock); replaceInv(medicine, s.cures); replaceBoosts(s.boosts);
+  const sp=s.plots||[];
+  for(let i=0;i<TILES;i++){
+    const q=sp[i];
+    if(q && q.plant){
+      const growT=Math.max(1,Math.round(q.growMs/TICK_MS));
+      const t=Math.min(growT, Math.max(0,(Date.now()-q.plantedAt)/TICK_MS));
+      plots[i]={state:t>=growT?'ready':'growing', plant:q.plant, variant:q.variant, t, growT, winT:0, sick:false, sickRolled:false, boosted:false};
+    } else {
+      plots[i]={state:'empty',plant:null,variant:'common',t:0,growT:0,winT:0,sick:false,sickRolled:false,boosted:false};
+    }
+  }
+  renderAll(); updateHUD(); updateLevelHUD();
+}
+async function onlinePlant(idx, plant, variant){
+  try{
+    const r=await Backend.plant(idx, plant, variant);   // {plot}
+    const q=r.plot, growT=Math.max(1,Math.round(q.growMs/TICK_MS));
+    plots[idx]={state:'growing',plant:q.plant,variant:q.variant,t:0,growT,winT:0,sick:false,sickRolled:false,boosted:false};
+    const k=invKey(plant,variant); if(seeds[k]){ seeds[k]--; if(seeds[k]<=0) delete seeds[k]; }
+    renderAll(); updateHUD();
+    if(!(seeds[k]>0)){ selSeed=null; setTool('harvest'); }
+    toast('🌱 Planted '+vName(variant)+PLANTS[plant].name+'.');
+  }catch(e){ toast('Could not plant — '+(/no_seed/.test(e.message)?'no seed left.':/level_locked/.test(e.message)?'level locked.':'try again.')); }
+}
+async function onlineHarvest(idx){
+  try{
+    const r=await Backend.harvest(idx);                 // {harvested, level, xp}
+    const [pl,va]=String(r.harvested).split('|');
+    addStock(pl,va,1); level=r.level; xp=r.xp;
+    plots[idx]={state:'empty',plant:null,variant:'common',t:0,growT:0,winT:0,sick:false,sickRolled:false,boosted:false};
+    spawnFx(idx,'+1 '+vName(va)+PLANTS[pl].icon);
+    renderAll(); updateHUD(); updateLevelHUD();
+    toast('🧺 Harvested! Sell it in 💰 Market.');
+  }catch(e){ toast(/not_ready/.test(e.message)?'Not ready yet.':'Could not harvest.'); }
+}
+async function onlineSell(kind, key){
+  try{
+    const r=await Backend.sell(kind, key, 1);           // {value, coins} — server prices + referral
+    coins=r.coins;
+    const bucket = kind==='stock'?stock : kind==='seed'?seeds : kind==='cure'?medicine : boosts;
+    if(bucket[key]){ bucket[key]--; if(bucket[key]<=0) delete bucket[key]; }
+    updateHUD(); renderSell(); toast('Sold for 🪙'+r.value);
+  }catch(e){ toast('Could not sell.'); }
+}
+
 function buyBox(){
+  if(Backend.online){
+    Backend.buyBox().then(r=>{ coins=r.coins; boxes=r.boxes; updateHUD(); toast('🎁 Bought a Seedbox! You have '+boxes+'.'); })
+                    .catch(e=>toast(/not_enough/.test(e.message)?'Not enough coins 🪙':'Could not buy box.'));
+    return;
+  }
   if(coins<LOOTBOX_COST){toast('Not enough coins 🪙');return;}
   coins-=LOOTBOX_COST; boxes++; updateHUD();
   // record the purchase: keeps the daily bonus alive and lifts an inactivity pause
@@ -1661,19 +1735,10 @@ function buyBox(){
   toast('🎁 Bought a Seedbox! You have '+boxes+'.');
 }
 
-function openSeedbox(){
-  if(revealing) return;
-  if(boxes<1){ toast('No Seedboxes — Buy one first!'); return; }
-  boxes--; updateHUD();
-
-  // roll 5, grant immediately, sort so the rarest reveals LAST
-  const items=[];
-  for(let i=0;i<ITEMS_PER_BOX;i++) items.push(rollItem());
+// show the tappable chest for a rolled set of display items (rarest reveals LAST)
+function beginReveal(items){
   items.sort((a,b)=>TIER_RANK[a.tier]-TIER_RANK[b.tier]);
-  Forest.event('lootbox_open',{items:items.map(i=>i.tier)});
   pendingItems=items; tapTimes=[];
-
-  // show the tappable chest
   document.getElementById('box-main').style.display='none';
   document.getElementById('reveal-stage').classList.remove('on');
   document.getElementById('reveal-row').innerHTML='';
@@ -1683,6 +1748,29 @@ function openSeedbox(){
   chest.style.opacity='1'; chest.style.transform='none';
   document.getElementById('tap-prompt').textContent='CLICK QUICKLY!';
   revealing=true;
+}
+
+function openSeedbox(){
+  if(revealing) return;
+  if(boxes<1){ toast('No Seedboxes — Buy one first!'); return; }
+
+  if(Backend.online){
+    revealing=true;   // lock against double-open while the request is in flight
+    Backend.openBox().then(r=>{
+      revealing=false;
+      boxes=r.boxes; replaceInv(seeds,r.seeds); replaceInv(medicine,r.cures); replaceBoosts(r.boosts); updateHUD();
+      Forest.event('lootbox_open',{items:(r.items||[]).map(i=>i.type)});
+      beginReveal((r.items||[]).map(displayItem));   // loot was rolled SERVER-SIDE
+    }).catch(e=>{ revealing=false; toast(/no_boxes/.test(e.message)?'No Seedboxes — Buy one first!':'Could not open box.'); });
+    return;
+  }
+
+  boxes--; updateHUD();
+  // roll 5 locally, grant immediately
+  const items=[];
+  for(let i=0;i<ITEMS_PER_BOX;i++) items.push(rollItem());
+  Forest.event('lootbox_open',{items:items.map(i=>i.tier)});
+  beginReveal(items);
 }
 
 function tapToOpen(){
@@ -1798,17 +1886,17 @@ function renderSell(){
     // cure potions (Crop/Fruit/Berry) → 50/90/130
     ['common','rare','mythic'].forEach(r=>{ if((medicine[r]||0)>0){
       const ic=r==='common'?'💊':(r==='rare'?'🧪':'💉'); const val=CURE_SELL[r];
-      cards.push({icon:ic,name:RARITY_NAME[r]+' Cure',meta:'Cure potion',val,qty:medicine[r],sell:()=>{medicine[r]--;}});
+      cards.push({icon:ic,name:RARITY_NAME[r]+' Cure',meta:'Cure potion',val,qty:medicine[r],kind:'cure',key:r,sell:()=>{medicine[r]--;}});
     }});
     // growth potions (Rare/Mythic/Legendary) → 30/45/120
     ['rare','mythic','legendary'].forEach(t=>{ if((boosts[t]||0)>0){
-      cards.push({icon:POTION_SVG,name:cap(t)+' Growth',meta:'Growth potion',val:GROWTH_SELL[t],qty:boosts[t],cls:vClass(t),sell:()=>{boosts[t]--;}});
+      cards.push({icon:POTION_SVG,name:cap(t)+' Growth',meta:'Growth potion',val:GROWTH_SELL[t],qty:boosts[t],cls:vClass(t),kind:'boost',key:t,sell:()=>{boosts[t]--;}});
     }});
     if(!cards.length){grid.innerHTML='<p style="grid-column:1/3;text-align:center;color:var(--text-dim);">No potions to sell.</p>';return;}
     cards.forEach(c=>{
       const el=document.createElement('div'); el.className='item-card'+(c.cls?' '+c.cls:'');
       el.innerHTML=`<div class="ic">${c.icon}</div><div class="nm">${c.name}</div><div class="meta">${c.meta}<br>🪙${c.val} each</div><div class="qty">×${c.qty}</div>`;
-      el.onclick=()=>{ c.sell(); coins+=c.val; Forest.reward('coins',c.val); coinGain(c.val); updateHUD(); renderSell(); toast('Sold for 🪙'+c.val); };
+      el.onclick=()=>{ if(Backend.online){ onlineSell(c.kind, c.key); return; } c.sell(); coins+=c.val; Forest.reward('coins',c.val); coinGain(c.val); updateHUD(); renderSell(); toast('Sold for 🪙'+c.val); };
       grid.appendChild(el);
     });
     return;
@@ -1821,7 +1909,7 @@ function renderSell(){
     const val=sellTab==='harvest'?saleValue(plant,variant):seedSellValue(plant);   // seeds: 20% of Common value
     const card=document.createElement('div'); card.className='item-card '+rarClass(pl.rarity)+(vClass(variant)?' '+vClass(variant):'');
     card.innerHTML=`<div class="ic">${pl.icon}</div><div class="nm">${vName(variant)}${pl.name}${sellTab==='seeds'?' Seed':''}</div><div class="meta">${RARITY_NAME[pl.rarity]}<br>🪙${val} each</div><div class="qty">×${src[k]}</div>`;
-    card.onclick=()=>{src[k]--;coins+=val;Forest.reward('coins',val);coinGain(val);if(src[k]<=0)delete src[k];updateHUD();renderSell();toast('Sold for 🪙'+val);};
+    card.onclick=()=>{ if(Backend.online){ onlineSell(sellTab==='harvest'?'stock':'seed', k); return; } src[k]--;coins+=val;Forest.reward('coins',val);coinGain(val);if(src[k]<=0)delete src[k];updateHUD();renderSell();toast('Sold for 🪙'+val);};
     grid.appendChild(card);
   });
 }
@@ -1829,6 +1917,18 @@ function renderSell(){
 /* ════════════════ LOOP ════════════════ */
 function gameTick(){
   let changed=false;
+  // Online: the server is authoritative on growth/sickness/spoilage. Only advance the
+  // growth clock for display and flip growing→ready (no local sickness/spoilage desync).
+  if(Backend.online){
+    for(const p of plots){
+      if(p.state==='growing'){
+        p.t += 1; changed=true;
+        if(p.t>=p.growT){ p.t=p.growT; p.state='ready'; p.winT=0; }
+      }
+    }
+    if(changed) renderAll();
+    return;
+  }
   for(const p of plots){
     if(p.state==='growing'){
       // sickness does NOT freeze the tile — it keeps growing
@@ -2050,25 +2150,35 @@ function vaultStatus(msg, kind){
   el.textContent=msg; el.className=kind||'';
 }
 
+function proceedVault(direction, raw, num){
+  vaultPendingAmount=num; vaultPendingDir=direction;
+  vaultBusy=true; updateVaultButtons();
+  vaultStatus((direction==='deposit'?'Depositing ':'Withdrawing ')+raw+' — confirm in your wallet…', '');
+  // Forest opens the wallet, submits on-chain, verifies, then returns.
+  callForest(direction==='deposit' ? 'forest.game.deposit' : 'forest.game.withdraw', { amount: raw });
+}
 function doVault(direction){
   if(vaultBusy) return;
   if(!walletAddress){ vaultStatus('Connect your wallet in Forest to use the vault.', 'err'); return; }
   const raw=(document.getElementById('vault-amt').value||'').trim();
   const num=Number(raw);
   if(!raw || !isFinite(num) || num<=0){ vaultStatus('Enter a positive amount.', 'err'); return; }
-  // withdraw moves the visible balance (coins) out to the wallet — can't exceed it
-  if(direction==='withdraw' && num > coins){
-    vaultStatus('Amount exceeds your balance.', 'err'); return;
-  }
   if(direction==='withdraw'){
+    // withdraw moves the visible balance (coins) out to the wallet — can't exceed it
+    if(num > coins){ vaultStatus('Amount exceeds your balance.', 'err'); return; }
+    if(Backend.online){
+      // server enforces the daily cap (localStorage bypass closed)
+      vaultBusy=true; updateVaultButtons(); vaultStatus('Checking daily limit…','');
+      Backend.checkWithdraw(num).then(()=>{ vaultBusy=false; updateVaultButtons(); proceedVault(direction, raw, num); })
+        .catch(e=>{ vaultBusy=false; updateVaultButtons();
+          const mm=String(e.message||'').match(/daily_limit_remaining:(\d+)/);
+          vaultStatus(mm?('Daily limit — 🪙'+Number(mm[1]).toLocaleString()+' remaining today.'):'Withdrawal blocked — try again.','err'); });
+      return;
+    }
     const wdRemaining=Math.max(0,VAULT_DAILY_WITHDRAW_LIMIT-vaultWdGet().amount);
     if(num>wdRemaining){ vaultStatus('Daily limit reached — 🪙'+wdRemaining.toLocaleString()+' remaining today.','err'); return; }
   }
-  vaultPendingAmount=num; vaultPendingDir=direction;
-  vaultBusy=true; updateVaultButtons();
-  vaultStatus((direction==='deposit'?'Depositing ':'Withdrawing ')+raw+' — confirm in your wallet…', '');
-  // Forest opens the wallet, submits on-chain, verifies, then returns.
-  callForest(direction==='deposit' ? 'forest.game.deposit' : 'forest.game.withdraw', { amount: raw });
+  proceedVault(direction, raw, num);
 }
 
 // routed here from the FOREST_RPC_RESPONSE handler for game.balance/deposit/withdraw
@@ -2188,6 +2298,24 @@ function fmtDuration(ms){
 }
 
 function claimDaily(){
+  if(Backend.online){
+    Backend.claimDaily().then(r=>{
+      if(r.granted){
+        boxes=r.boxes; updateHUD();
+        dailyMutate(rec=>{ rec.lastClaim=Date.now(); });               // mirror so the local timer matches the server
+        toast('🎁 +1 Seedbox! Daily bonus claimed.');
+      } else if(r.reason){
+        toast(dailyRevokeText(r.reason));
+        dailyMutate(rec=>{ rec.revoked=true; rec.reason=r.reason; });
+      } else {
+        const left=Number(r.nextInMs||0);
+        dailyMutate(rec=>{ rec.lastClaim=Date.now()-(DAY_MS-left); });  // align local countdown to server
+        toast('🎁 Next daily bonus in '+fmtDuration(left));
+      }
+      renderDaily();
+    }).catch(e=>{ toast('Could not claim daily bonus.'); });
+    return;
+  }
   dailyCheckInactive();
   const r=dailyGet();
   if(r.revoked){ toast(dailyRevokeText(r.reason)); renderDaily(); return; }
@@ -2444,7 +2572,11 @@ maybeShowOnboarding();
 // connect to the backend only inside the Forest iframe (preview/local stays offline → no hang).
 // On success the referral code shown switches to the canonical server code.
 if(isEmbedded()){
-  Backend.connect().then(ok=>{ if(ok){ const cEl=document.getElementById('my-ref-code'); if(cEl) cEl.textContent=myReferralCode(); } });
+  Backend.connect().then(ok=>{
+    if(!ok) return;
+    const cEl=document.getElementById('my-ref-code'); if(cEl) cEl.textContent=myReferralCode();
+    Backend.state().then(syncState).catch(()=>{});   // hydrate the authoritative server snapshot
+  });
 }
 // keep the present's timer ticking live
 setInterval(renderDaily, 1000);
