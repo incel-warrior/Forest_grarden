@@ -6,7 +6,6 @@
   .cover{position:relative;width:100vmin;height:100vmin;margin:0 auto;overflow:hidden;
     background:linear-gradient(180deg,#0a1a33 0%,#0d2342 34%,#16432e 64%,#2c7d3f 100%);
     font-family:'Press Start 2P',monospace}
-  .star{position:absolute;background:#fff;border-radius:50%}
   .word{position:absolute;left:0;right:0;text-align:center;font-size:13.5vmin;
     letter-spacing:1px;text-shadow:4px 4px 0 #000}
   .forest{top:9%;color:#33E8B3}
@@ -20,11 +19,4 @@
   <div class="berry">🍓</div>
   <div class="word garden">GARDEN</div>
 </div>
-<script>
-  const cover=document.getElementById('cover');
-  for(let i=0;i<40;i++){const s=document.createElement('div');s.className='star';
-    const sz=(Math.random()<.8?1.3:2.6);s.style.width=sz+'vmin';s.style.height=sz+'vmin';
-    s.style.left=(Math.random()*100)+'%';s.style.top=(Math.random()*40)+'%';
-    s.style.opacity=(.45+Math.random()*.5).toFixed(2);cover.appendChild(s);}
-</script>
 </body></html>
