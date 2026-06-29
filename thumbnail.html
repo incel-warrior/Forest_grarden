@@ -4,72 +4,27 @@
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;overflow:hidden;background:#0a1a33}
   .cover{position:relative;width:100vmin;height:100vmin;margin:0 auto;overflow:hidden;
-    background:linear-gradient(180deg,#0a1a33 0%,#0d2342 34%,#16432e 60%,#2c7d3f 100%);
+    background:linear-gradient(180deg,#0a1a33 0%,#0d2342 34%,#16432e 64%,#2c7d3f 100%);
     font-family:'Press Start 2P',monospace}
-  .star{position:absolute;background:#fff;border-radius:50%;opacity:.85}
-  /* sakura trees */
-  .tree{position:absolute;bottom:21%}
-  .trunk{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:7%;height:60%;
-    background:#5a3a2a;border-radius:3px}
-  .canopy{position:relative;width:100%;height:62%;}
-  .blob{position:absolute;border-radius:50%}
-  /* fence */
-  .fence{position:absolute;left:0;right:0;bottom:14.5%;height:9%}
-  .rail{position:absolute;left:0;right:0;height:13%;background:#e8ebdf;box-shadow:0 2px 0 rgba(0,0,0,.18)}
-  .pickets{position:absolute;left:0;right:0;bottom:0;height:100%;
-    background:repeating-linear-gradient(90deg,#eef1e6 0 3.6%,transparent 3.6% 8.2%)}
-  .ground-fg{position:absolute;left:0;right:0;bottom:0;height:15%;background:#2f8a42}
-  /* strawberry */
-  .berry{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%);
-    font-size:34vmin;line-height:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
-  .coin{position:absolute;left:64%;top:54%;transform:translate(-50%,-50%);
-    font-size:13vmin;filter:drop-shadow(0 3px 7px rgba(0,0,0,.5))}
-  /* title */
-  .title{position:absolute;left:0;right:0;top:6.5%;text-align:center;line-height:1.32;
-    text-shadow:3px 3px 0 #000;letter-spacing:1px}
-  .title .l{display:block;font-size:9.6vmin}
-  .forest{color:#33E8B3}.garden{color:#e0503b}
-  /* tagline */
-  .tag{position:absolute;left:0;right:0;bottom:4.2%;text-align:center;color:#ffd23f;
-    font-size:3.05vmin;text-shadow:2px 2px 0 #000}
-  .tag .d{color:#cfe3cd}
+  .star{position:absolute;background:#fff;border-radius:50%}
+  .word{position:absolute;left:0;right:0;text-align:center;font-size:13.5vmin;
+    letter-spacing:1px;text-shadow:4px 4px 0 #000}
+  .forest{top:9%;color:#33E8B3}
+  .garden{bottom:9%;color:#e0503b}
+  .berry{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    font-size:46vmin;line-height:1;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))}
 </style></head>
 <body>
 <div class="cover" id="cover">
-  <div class="title"><span class="l forest">FOREST</span><span class="l garden">GARDEN</span></div>
+  <div class="word forest">FOREST</div>
   <div class="berry">🍓</div>
-  <div class="coin">🪙</div>
-  <div class="fence">
-    <div class="rail" style="top:0"></div>
-    <div class="rail" style="top:42%"></div>
-    <div class="pickets"></div>
-  </div>
-  <div class="ground-fg"></div>
-  <div class="tag">PLANT <span class="d">·</span> HARVEST <span class="d">·</span> EARN <span style="color:#e0503b">$GARDEN</span></div>
+  <div class="word garden">GARDEN</div>
 </div>
 <script>
   const cover=document.getElementById('cover');
-  // stars in the upper sky
-  for(let i=0;i<46;i++){const s=document.createElement('div');s.className='star';
+  for(let i=0;i<40;i++){const s=document.createElement('div');s.className='star';
     const sz=(Math.random()<.8?1.3:2.6);s.style.width=sz+'vmin';s.style.height=sz+'vmin';
-    s.style.left=(Math.random()*100)+'%';s.style.top=(Math.random()*38)+'%';
-    s.style.opacity=(.5+Math.random()*.5).toFixed(2);cover.appendChild(s);}
-  // a row of pixel sakura trees
-  const tones=[['#ffc2dd','#f7a9cd','#ffb6d6'],['#e7a3c8','#d98fb8','#f0b5d2'],['#c97ea8','#d98fb8','#e0a0c4']];
-  const n=6;
-  for(let i=0;i<n;i++){
-    const t=document.createElement('div');t.className='tree';
-    const w=15+Math.random()*5, h=20+Math.random()*7;
-    t.style.width=w+'vmin';t.style.height=h+'vmin';
-    t.style.left=(i/(n)*100 + 3 + (Math.random()*4-2))+'%';
-    const pal=tones[i%tones.length];
-    const canopy=document.createElement('div');canopy.className='canopy';
-    const blobs=[[18,8,64,'a'],[0,30,52,'b'],[46,28,56,'c'],[26,40,60,'a'],[10,18,46,'b'],[52,6,46,'c']];
-    blobs.forEach(([l,tp,d],bi)=>{const b=document.createElement('div');b.className='blob';
-      b.style.left=l+'%';b.style.top=tp+'%';b.style.width=d+'%';b.style.height=d+'%';
-      b.style.background=pal[bi%pal.length];canopy.appendChild(b);});
-    const trunk=document.createElement('div');trunk.className='trunk';
-    t.appendChild(canopy);t.appendChild(trunk);cover.appendChild(t);
-  }
+    s.style.left=(Math.random()*100)+'%';s.style.top=(Math.random()*40)+'%';
+    s.style.opacity=(.45+Math.random()*.5).toFixed(2);cover.appendChild(s);}
 </script>
 </body></html>
