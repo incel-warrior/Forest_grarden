@@ -33,6 +33,15 @@ export async function initSchema() {
       created_at TIMESTAMPTZ DEFAULT now()
     );
 
+    -- idempotency for vault deposit/withdraw settlements (one row per actionId)
+    CREATE TABLE IF NOT EXISTS settled_actions (
+      action_id  TEXT PRIMARY KEY,
+      user_id    TEXT,
+      kind       TEXT,          -- 'deposit' | 'withdraw'
+      amount     BIGINT,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_users_total_earned ON users (total_earned DESC);
   `);
 

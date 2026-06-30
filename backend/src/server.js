@@ -281,22 +281,90 @@ app.post('/daily/claim', requireAuth, wrap(async (req, res) => {
   res.json({ granted: true, boxes: u.boxes + 1, nextInMs: config.dayMs, ...(revoked ? { warning: 'revoked_after_claim' } : {}) });
 }));
 
-// ─────────────── #6 FIX: server-enforced daily withdrawal cap ──────────
-// Call this BEFORE the iframe runs forest.game.withdraw. The cap lives server-side
-// (per verified userId, per UTC day) so clearing localStorage can't bypass it.
-app.post('/vault/withdraw', requireAuth, wrap(async (req, res) => {
+// ─── VAULT DEPOSIT: $GARDEN (Game Balance) → in-game coins (1:1) ───
+// The iframe first runs forest.game.deposit (wallet → Game Balance) and authorizes an
+// action. Here we DEBIT that Game Balance via settlement — Forest only allows the debit if
+// the player truly has the balance + authorization, so coins can't be minted for free.
+app.post('/vault/deposit', requireAuth, wrap(async (req, res) => {
+  const { actionId } = req.body || {};
   const amount = Math.floor(Number(req.body?.amount || 0));
   if (!(amount > 0)) throw httpError(400, 'amount must be > 0');
+  if (!actionId || typeof actionId !== 'string') throw httpError(400, 'actionId required');
+
+  // claim the actionId (idempotent — a retry of an already-settled deposit won't double-credit)
+  const claim = await pool.query(
+    `INSERT INTO settled_actions (action_id, user_id, kind, amount) VALUES ($1, $2, 'deposit', $3)
+     ON CONFLICT (action_id) DO NOTHING RETURNING action_id`, [actionId, req.userId, amount]);
+  if (!claim.rows[0]) {
+    const u = (await pool.query('SELECT coins FROM users WHERE user_id = $1', [req.userId])).rows[0];
+    return res.json({ ok: true, coins: num(u && u.coins), replayed: true });
+  }
+
+  try {
+    await settle({ actionId, debitAmount: toBaseUnits(amount), creditAmount: '0' });
+  } catch (e) {
+    await pool.query('DELETE FROM settled_actions WHERE action_id = $1', [actionId]);  // allow a clean retry
+    throw e;
+  }
+  const out = await withUserLock(req.userId, async (client, u) => {
+    const coins = num(u.coins) + amount;
+    await client.query('UPDATE users SET coins = $2, last_activity = $3 WHERE user_id = $1', [req.userId, coins, Date.now()]);
+    return { coins };
+  });
+  res.json({ ok: true, coins: out.coins });
+}));
+
+// ─── VAULT WITHDRAW: in-game coins → $GARDEN (Game Balance, vault-funded) → wallet ───
+// #6: daily cap is server-side (per verified userId, per UTC day) so clearing localStorage
+// can't bypass it. We debit coins + reserve the cap, then settle a vault-funded credit to the
+// player's Game Balance; the iframe then runs forest.game.withdraw to move it to the wallet.
+app.post('/vault/withdraw', requireAuth, wrap(async (req, res) => {
+  const { actionId } = req.body || {};
+  const amount = Math.floor(Number(req.body?.amount || 0));
+  if (!(amount > 0)) throw httpError(400, 'amount must be > 0');
+  if (!actionId || typeof actionId !== 'string') throw httpError(400, 'actionId required');
   const today = new Date().toISOString().slice(0, 10);
-  res.json(await withUserLock(req.userId, async (client, u) => {
-    const used = (u.withdraw_day === today) ? num(u.withdraw_amount) : 0;
-    const remaining = config.vaultDailyWithdrawLimit - used;
-    if (amount > remaining) throw httpError(403, `daily_limit_remaining:${remaining}`);
-    const newUsed = used + amount;
-    await client.query('UPDATE users SET withdraw_day = $2, withdraw_amount = $3 WHERE user_id = $1',
-      [req.userId, today, newUsed]);
-    return { ok: true, used: newUsed, remaining: config.vaultDailyWithdrawLimit - newUsed };
-  }));
+
+  const claim = await pool.query(
+    `INSERT INTO settled_actions (action_id, user_id, kind, amount) VALUES ($1, $2, 'withdraw', $3)
+     ON CONFLICT (action_id) DO NOTHING RETURNING action_id`, [actionId, req.userId, amount]);
+  if (!claim.rows[0]) {
+    const u = (await pool.query('SELECT coins FROM users WHERE user_id = $1', [req.userId])).rows[0];
+    return res.json({ ok: true, coins: num(u && u.coins), replayed: true });
+  }
+
+  // reserve coins + daily cap atomically
+  let reserved;
+  try {
+    reserved = await withUserLock(req.userId, async (client, u) => {
+      if (num(u.coins) < amount) throw httpError(400, 'not_enough_coins');
+      const used = (u.withdraw_day === today) ? num(u.withdraw_amount) : 0;
+      const remaining = config.vaultDailyWithdrawLimit - used;
+      if (amount > remaining) throw httpError(403, `daily_limit_remaining:${remaining}`);
+      const coins = num(u.coins) - amount;
+      await client.query('UPDATE users SET coins = $2, withdraw_day = $3, withdraw_amount = $4, last_activity = $5 WHERE user_id = $1',
+        [req.userId, coins, today, used + amount, Date.now()]);
+      return { coins };
+    });
+  } catch (e) {
+    await pool.query('DELETE FROM settled_actions WHERE action_id = $1', [actionId]);
+    throw e;
+  }
+
+  // credit the player's Game Balance from the Game Vault
+  try {
+    await settle({ actionId, debitAmount: '0', creditAmount: toBaseUnits(amount) });
+  } catch (e) {
+    // settlement failed (e.g. vault underfunded) → refund coins + cap, release the claim
+    await withUserLock(req.userId, async (client, u) => {
+      const used = (u.withdraw_day === today) ? num(u.withdraw_amount) : 0;
+      await client.query('UPDATE users SET coins = coins + $2, withdraw_amount = $3 WHERE user_id = $1',
+        [req.userId, amount, Math.max(0, used - amount)]);
+    });
+    await pool.query('DELETE FROM settled_actions WHERE action_id = $1', [actionId]);
+    throw e;
+  }
+  res.json({ ok: true, coins: reserved.coins });
 }));
 
 // ─────────────────────────── leaderboard ──────────────────────────────

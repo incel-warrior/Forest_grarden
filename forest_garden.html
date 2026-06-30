@@ -969,7 +969,8 @@ const Backend = {
   harvest(idx){ return this.api('/harvest', { method:'POST', body:{ idx } }); },
   sell(kind,key,qty){ return this.api('/sell', { method:'POST', body:{ kind, key, qty } }); },
   claimDaily(){ return this.api('/daily/claim', { method:'POST' }); },
-  checkWithdraw(amount){ return this.api('/vault/withdraw', { method:'POST', body:{ amount } }); },
+  deposit(actionId, amount){ return this.api('/vault/deposit', { method:'POST', body:{ actionId, amount } }); },
+  withdraw(actionId, amount){ return this.api('/vault/withdraw', { method:'POST', body:{ actionId, amount } }); },
   leaderboard(){ return this.api('/leaderboard', { auth:false }); },
 };
 // pull the balance object out of either a balance-read result or a deposit/withdraw result
@@ -2127,7 +2128,6 @@ function openVault(){
   openOverlay('vault-overlay');
 }
 
-let vaultPendingAmount = 0, vaultPendingDir = null;   // applied to coins on success
 
 // display a token amount: group thousands, trim to 4 decimals
 function fmtToken(n){
@@ -2172,60 +2172,77 @@ function vaultStatus(msg, kind){
   el.textContent=msg; el.className=kind||'';
 }
 
-function proceedVault(direction, raw, num){
-  vaultPendingAmount=num; vaultPendingDir=direction;
-  vaultBusy=true; updateVaultButtons();
-  vaultStatus((direction==='deposit'?'Depositing ':'Withdrawing ')+raw+' — confirm in your wallet…', '');
-  // Forest opens the wallet, submits on-chain, verifies, then returns.
-  callForest(direction==='deposit' ? 'forest.game.deposit' : 'forest.game.withdraw', { amount: raw });
-}
-function doVault(direction){
+// Vault bridge (server-authoritative, 1 coin = 1 $GARDEN):
+//  deposit  = top up Game Balance from wallet if needed → backend settlement DEBITS it → credits 🪙
+//  withdraw = backend debits 🪙 + vault-funded credit to Game Balance → forest.game.withdraw → wallet
+async function doVault(direction){
   if(vaultBusy) return;
   if(!walletAddress){ vaultStatus('Connect your wallet in Forest to use the vault.', 'err'); return; }
+  if(!Backend.online){ vaultStatus('Open the game inside Forest to use the vault.', 'err'); return; }
   const raw=(document.getElementById('vault-amt').value||'').trim();
-  const num=Number(raw);
-  if(!raw || !isFinite(num) || num<=0){ vaultStatus('Enter a positive amount.', 'err'); return; }
-  if(direction==='withdraw'){
-    // withdraw moves the visible balance (coins) out to the wallet — can't exceed it
-    if(num > coins){ vaultStatus('Amount exceeds your balance.', 'err'); return; }
-    if(Backend.online){
-      // server enforces the daily cap (localStorage bypass closed)
-      vaultBusy=true; updateVaultButtons(); vaultStatus('Checking daily limit…','');
-      Backend.checkWithdraw(num).then(()=>{ vaultBusy=false; updateVaultButtons(); proceedVault(direction, raw, num); })
-        .catch(e=>{ vaultBusy=false; updateVaultButtons();
-          const mm=String(e.message||'').match(/daily_limit_remaining:(\d+)/);
-          vaultStatus(mm?('Daily limit — 🪙'+Number(mm[1]).toLocaleString()+' remaining today.'):'Withdrawal blocked — try again.','err'); });
-      return;
+  const amount=Math.floor(Number(raw));
+  if(!raw || !isFinite(amount) || amount<=0){ vaultStatus('Enter a positive whole number.', 'err'); return; }
+  if(direction==='withdraw' && amount>coins){ vaultStatus('Amount exceeds your 🪙 balance.', 'err'); return; }
+
+  const newId=()=> (crypto.randomUUID ? crypto.randomUUID() : (direction+'-'+Date.now()+'-'+Math.random().toString(16).slice(2)));
+  vaultBusy=true; updateVaultButtons();
+  try{
+    if(direction==='deposit'){
+      // only pull from the wallet what the Game Balance is short by — this also converts any
+      // pre-existing (stranded) Game Balance into coins.
+      const have=Number((gameBalance && gameBalance.balance) || 0);
+      const need=Math.max(0, amount-have);
+      if(need>0){
+        vaultStatus('Confirm the '+need+' $GARDEN deposit in your wallet…','');
+        const dep=await callForestAsync('forest.game.deposit', { amount:String(need) });
+        if(dep && dep.balance) gameBalance=dep.balance;
+      }
+      const actionId=newId();
+      await callForestAsync('forest.game.action.authorize', { actionId, debitLimitAmount:String(amount) });
+      vaultStatus('Crediting your coins…','');
+      const r=await Backend.deposit(actionId, amount);
+      coins=r.coins;
+      callForest('forest.game.balance');   // refresh displayed Game Balance
+    } else {
+      const actionId=newId();
+      await callForestAsync('forest.game.action.authorize', { actionId, debitLimitAmount:'0' });
+      vaultStatus('Processing withdrawal…','');
+      const r=await Backend.withdraw(actionId, amount);   // debits 🪙, credits Game Balance from the vault
+      coins=r.coins; vaultWdAdd(amount);
+      vaultStatus('Confirm the withdrawal in your wallet…','');
+      try{
+        const wd=await callForestAsync('forest.game.withdraw', { amount:String(amount) });
+        if(wd && wd.balance) gameBalance=wd.balance;
+      }catch(wderr){
+        // coins already converted to a vault-funded Game Balance credit — funds are safe, just not in-wallet yet
+        updateHUD(); renderVault();
+        vaultStatus('Your '+amount+' $GARDEN is in your Game Balance — reopen the Vault to send it to your wallet.','');
+        return;
+      }
     }
-    const wdRemaining=Math.max(0,VAULT_DAILY_WITHDRAW_LIMIT-vaultWdGet().amount);
-    if(num>wdRemaining){ vaultStatus('Daily limit reached — 🪙'+wdRemaining.toLocaleString()+' remaining today.','err'); return; }
+    updateHUD(); renderVault();
+    const inp=document.getElementById('vault-amt'); if(inp) inp.value='';
+    vaultStatus((direction==='deposit'?'Deposit':'Withdrawal')+' complete! Balance: 🪙'+coins, 'ok');
+    toast('🏦 '+(direction==='deposit'?'Deposit':'Withdrawal')+' complete!');
+  }catch(e){
+    const m=String(e.message||'');
+    let msg=(direction==='deposit'?'Deposit':'Withdrawal')+' failed. Please try again.';
+    if(/not_enough_coins/.test(m)) msg='Not enough 🪙 coins.';
+    else if(/daily_limit_remaining:(\d+)/.test(m)){ const n=m.match(/daily_limit_remaining:(\d+)/)[1]; msg='Daily limit — 🪙'+Number(n).toLocaleString()+' remaining today.'; }
+    else if(/timeout/i.test(m)) msg='Timed out waiting for your wallet. Try again.';
+    else if(/INSUFFICIENT|vault/i.test(m)) msg='Vault is temporarily out of funds — try later or a smaller amount.';
+    vaultStatus(msg, 'err');
+  }finally{
+    vaultBusy=false; updateVaultButtons();
   }
-  proceedVault(direction, raw, num);
 }
 
-// routed here from the FOREST_RPC_RESPONSE handler for game.balance/deposit/withdraw
+// Progress/refresh only. The actual coin credit/debit is owned by the async doVault() flow +
+// backend settlement — never self-credited here (Forest forbids self-crediting deposits).
 function onVaultResult(method, status, payload){
   if(method==='forest.game.balance'){ renderVault(); return; }   // silent refresh
-
-  const verb = method==='forest.game.deposit' ? 'Deposit' : 'Withdrawal';
-  if(status==='pending'){ vaultStatus(verb+' submitted — confirm in your wallet…', ''); return; }
-  if(status==='hash'){ vaultStatus(verb+' transaction submitted, confirming on-chain…', ''); return; }
-  if(status==='success'){
-    // apply the move to the visible balance: deposit adds coins, withdraw removes them
-    if(vaultPendingDir==='deposit') coins += vaultPendingAmount;
-    else if(vaultPendingDir==='withdraw'){ coins=Math.max(0,coins-vaultPendingAmount); vaultWdAdd(vaultPendingAmount); }
-    updateHUD(); renderVault();
-    vaultBusy=false; vaultPendingDir=null; updateVaultButtons();
-    const inp=document.getElementById('vault-amt'); if(inp) inp.value='';
-    vaultStatus(verb+' complete! Balance: 🪙'+coins, 'ok');
-    toast('🏦 '+verb+' complete!');
-    return;
-  }
-  if(status==='error'){
-    vaultBusy=false; vaultPendingDir=null; updateVaultButtons();
-    const msg=(payload && payload.message) ? payload.message : (verb+' failed. Please try again.');
-    vaultStatus(msg, 'err');
-    return;
+  if(status==='pending' || status==='hash'){
+    vaultStatus((method==='forest.game.deposit'?'Deposit':'Withdrawal')+' submitted — confirming on-chain…', '');
   }
 }
 
