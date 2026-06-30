@@ -80,10 +80,10 @@
   #topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     background: transparent;
-    padding: 9px 14px;
-    display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+    padding: clamp(6px, 1.5vw, 9px) clamp(4px, 2vw, 6px);
+    display: flex; align-items: center; gap: clamp(2px, 1.5vw, 4px); flex-wrap: nowrap;
   }
-  #topbar h1 { font-size: 1.6rem; color: #33E8B3; text-shadow: 2px 2px 0 #000; letter-spacing:0.5px; white-space:nowrap; }
+  #topbar h1 { font-size: clamp(0.85rem, 4vw, 2rem); color: #33E8B3; text-shadow: 2px 2px 0 #000; letter-spacing:0.3px; white-space:nowrap; }
   #topbar h1 .s { color: var(--berry); }
   .stat {
     display: flex; align-items: center; gap: 5px;
@@ -108,9 +108,9 @@
     transform-origin: right center; position: relative;
   }
   #coins-stat:hover { filter: brightness(1.12); }
-  #coins-stat .icon { font-size: 3.3rem; display:inline-flex; align-items:center; }
+  #coins-stat .icon { font-size: clamp(1.1rem, 6vw, 2.8rem); display:inline-flex; align-items:center; }
   #coins-stat .icon svg { height: 1em; width: auto; display:block; }
-  #coins-display { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 2.7rem; letter-spacing: 0.5px; -webkit-text-stroke: 1px #FFD400; }
+  #coins-display { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: clamp(1rem, 5vw, 2.4rem); letter-spacing: 0px; -webkit-text-stroke: 0.5px #FFD400; }
   #coins-stat.gain { animation: coinPulse 0.55s ease; }
   #coins-stat.gain .icon { animation: coinSpin 0.55s ease; }
   @keyframes coinPulse { 0%{transform:scale(1);} 28%{transform:scale(1.28); text-shadow:0 0 16px var(--seed),0 0 6px #fff;} 100%{transform:scale(1); text-shadow:none;} }
@@ -138,7 +138,7 @@
   }
   #garden {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px;
-    width: min(502px, 100%, max(240px, calc(100vh - 300px))); aspect-ratio: 1;
+    width: min(552px, 100%, max(264px, calc((100vh - 300px) * 1.1))); aspect-ratio: 1;
     padding: 9px; border-radius: 8px;
     background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.45));
     border: 3px solid var(--border);
@@ -209,7 +209,7 @@
   .rail.bottom { flex-direction: row; justify-content: center; margin-top: clamp(8px, 2vw, 18px); }
 
   .tool-btn {
-    width: clamp(72px, 17vw, 165px); height: clamp(72px, 17vw, 165px);
+    width: clamp(58px, 13.6vw, 132px); height: clamp(58px, 13.6vw, 132px);
     display:flex; align-items:center; justify-content:center;
     background: linear-gradient(180deg, var(--panel-lt), var(--panel));
     border: 3px solid var(--border); border-radius: 16px;
@@ -217,7 +217,7 @@
     transition: transform 0.08s, border-color 0.1s, background 0.1s;
     box-shadow: 0 4px 0 rgba(0,0,0,0.5);
   }
-  .tool-btn .tool-icon { font-size: clamp(2.4rem, 9.5vw, 5.4rem); line-height: 1; display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+  .tool-btn .tool-icon { font-size: clamp(1.92rem, 7.6vw, 4.32rem); line-height: 1; display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
   .tool-btn:hover { transform: translateY(-2px); border-color: var(--leaf-dk); }
   .tool-btn:active { transform: translateY(0); box-shadow: 0 1px 0 rgba(0,0,0,0.5); }
   .tool-btn.active { background: var(--leaf-dk); border-color: var(--leaf); color:#fff; }
@@ -228,6 +228,7 @@
   /* ── MODALS ── */
   .overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; }
   .overlay.open { display:flex; }
+  #onboard-overlay, #invite-overlay { background:rgba(0,0,0,0.2); }
   .modal {
     background: linear-gradient(180deg, var(--panel-lt), var(--panel));
     border: 3px solid var(--border); border-radius: 8px;
@@ -264,7 +265,7 @@
 
   /* ── ONBOARDING (2-page carousel) ── */
   .modal.onboard { width:min(440px,94vw); text-align:center;
-    background:linear-gradient(180deg,#11241a,#0a1610); border-color:#1f3a2a; }
+    background:linear-gradient(180deg,rgba(17,36,26,0.3),rgba(10,22,16,0.3)); border-color:#1f3a2a; }
   .onboard-page { animation: obFade .25s ease; }
   @keyframes obFade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
   .modal h2.ob-maintitle { font-family:'Press Start 2P',monospace; font-size:1.4rem; color:#33E8B3;
@@ -541,7 +542,7 @@
 <div id="backdrop"></div>
 
 <div id="topbar">
-  <h1 class="pixel"><span style="cursor:pointer;font-size:5.58rem;vertical-align:middle;line-height:1" onclick="openLeaderboard()" title="Leaderboard">🏆</span> FOREST <span class="s">GARDEN</span></h1>
+  <h1 class="pixel" style="display:flex;align-items:center;gap:0.5em"><span style="cursor:pointer;font-size:clamp(2rem,10.5vw,5.2rem);line-height:1" onclick="openLeaderboard()" title="Leaderboard">🏆</span><span>FOREST</span><span class="s">GARDEN</span></h1>
   <div class="spacer"></div>
   <div id="coins-stat" onclick="openVault()" title="Vault — deposit / withdraw"><span class="icon"><svg viewBox="0 0 64 58" aria-hidden="true"><g stroke="#21323a" stroke-width="2.6" stroke-linejoin="round"><ellipse cx="23" cy="42" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="35" rx="18" ry="7" fill="#ffc91a"/><ellipse cx="23" cy="28" rx="18" ry="7" fill="#eaa800"/><ellipse cx="23" cy="21" rx="18" ry="7" fill="#ffc91a"/></g><g transform="rotate(-16 45 36)"><ellipse cx="45" cy="36" rx="15" ry="18" fill="#ffc91a" stroke="#21323a" stroke-width="2.8"/><ellipse cx="45" cy="36" rx="10" ry="12.5" fill="none" stroke="#21323a" stroke-width="2"/><text x="45" y="42.5" font-size="17" font-weight="900" text-anchor="middle" fill="#21323a" font-family="Arial, sans-serif">$</text></g></svg></span><span id="coins-display">0</span></div>
 </div>
