@@ -94,10 +94,10 @@
   .spacer { flex: 1; }
   /* level band between the top bar and the garden */
   /* pinned so it stays visible if #stage scrolls (content can exceed the stage height) */
-  #level-band { display:flex; align-items:center; gap:8px; width:min(360px,82%); margin:3px auto 0;
+  #level-band { display:flex; align-items:center; gap:7px; width:min(324px,74%); margin:1px auto 0;
                 position:sticky; top:0; z-index:2; }
-  .lvl-label { font-family:'Press Start 2P', monospace; font-size:0.76rem; color:#bfe9c2; text-shadow:1px 1px 0 #000; white-space:nowrap; }
-  #xp-bar { flex:1; height:15px; background:rgba(0,0,0,0.45); border:2px solid rgba(255,255,255,0.3); border-radius:8px; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,0.35); }
+  .lvl-label { font-family:'Press Start 2P', monospace; font-size:0.68rem; color:#bfe9c2; text-shadow:1px 1px 0 #000; white-space:nowrap; }
+  #xp-bar { flex:1; height:13.5px; background:rgba(0,0,0,0.45); border:2px solid rgba(255,255,255,0.3); border-radius:7px; overflow:hidden; box-shadow:0 2px 4px rgba(0,0,0,0.35); }
   #xp-fill { height:100%; width:0%; background:linear-gradient(90deg,#7ed321,#ffd23f); transition:width .35s ease; }
   /* coins: right-aligned, no frame, large, pixel font like the title */
   #coins-stat {
@@ -123,14 +123,14 @@
 
   /* ── GAME AREA ── */
   #stage {
-    position: absolute; top: 58px; left: 0; right: 0; bottom: 0; z-index: 10;
+    position: absolute; top: 50px; left: 0; right: 0; bottom: 0; z-index: 10;
     display: flex; flex-direction: column;
     padding: 0 20px 20px;   /* doubled side + bottom gap from the page border */
     overflow: hidden;       /* everything is sized to fit the square — no scrollbar */
   }
   #playrow {
     display: flex; flex-direction: row; align-items: center; justify-content: space-between;
-    gap: clamp(14px, 3.5vw, 46px); margin-top: clamp(2px, 0.6vh, 8px);
+    gap: clamp(14px, 3.5vw, 46px); margin-top: clamp(4px, 1.2vh, 16px);
   }
   #game-wrap {
     flex: 1 1 0; min-width: 0;
@@ -194,7 +194,7 @@
   .badge-fast { top:3px; right:3px; background:var(--diamond); color:#08313f; }
   .badge-aura { top:3px; left:3px; background:#2f8457; color:#eafff2; font-size:0.5rem; font-weight:800; cursor:help; }
   #hovertip { position:fixed; z-index:500; max-width:230px; padding:8px 10px; border-radius:8px;
-              background:rgba(16,26,20,0.97); color:#e8f3ea; font-size:0.72rem; line-height:1.5;
+              background:rgba(16,26,20,0.5); color:#e8f3ea; font-size:0.72rem; line-height:1.5;
               border:1px solid rgba(120,200,150,0.4); box-shadow:0 4px 16px rgba(0,0,0,0.5);
               pointer-events:none; display:none; white-space:pre-line; }
 
@@ -328,7 +328,7 @@
   #buy-status.ok { color:var(--leaf); } #buy-status.err { color:var(--berry-lt); }
 
   #toast { position:fixed; top:120px; left:50%; transform:translateX(-50%) translateY(-10px);
-    background:rgba(8,18,11,0.95); border:2px solid var(--border); color:var(--text);
+    background:rgba(8,18,11,0.5); border:2px solid var(--border); color:var(--text);
     border-radius:6px; padding:8px 18px; font-weight:700; font-size:0.85rem; opacity:0; pointer-events:none; z-index:300;
     transition:opacity 0.25s, transform 0.25s; max-width:90vw; text-align:center; }
   #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -487,12 +487,12 @@
     background:none; border:none; padding:0; cursor:default;
     transition: transform .1s, filter .12s;
   }
-  .daily-gift .dg-icon { width:clamp(60px,11.5vw,84px); height:clamp(60px,11.5vw,84px);
+  .daily-gift .dg-icon { width:clamp(51px,9.8vw,71px); height:clamp(51px,9.8vw,71px);
     display:flex; align-items:center; justify-content:center;
     background:linear-gradient(180deg,var(--panel-lt),var(--panel));
     border:3px solid var(--border); border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
   .daily-gift .dg-icon svg { width:64%; height:auto; display:block; }
-  .daily-gift .dg-timer { font-family:'Press Start 2P', monospace; font-size:0.78rem; font-weight:700;
+  .daily-gift .dg-timer { font-family:'Press Start 2P', monospace; font-size:0.66rem; font-weight:700;
     color:#e0503b; text-align:center; line-height:1.1; white-space:nowrap;
     text-shadow:-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
                 -1px 0 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff; }
@@ -520,13 +520,13 @@
     background:none; border:none; padding:0; cursor:pointer;
     transition: transform .1s, filter .12s; }
   .invite-btn:hover { transform:translateY(-2px); filter:brightness(1.12); }
-  .invite-btn .ib-icon { width:clamp(60px,11.5vw,84px); height:clamp(60px,11.5vw,84px);
+  .invite-btn .ib-icon { width:clamp(51px,9.8vw,71px); height:clamp(51px,9.8vw,71px);
     display:flex; align-items:center; justify-content:center;
     background:linear-gradient(180deg,var(--panel-lt),var(--panel));
     border:3px solid var(--border); border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.4); }
   .invite-btn:hover .ib-icon { border-color:var(--leaf); }
   .invite-btn .ib-icon svg { width:64%; height:auto; display:block; }
-  .invite-btn .ib-label { font-family:'Press Start 2P',monospace; font-size:0.78rem; color:#e0503b;
+  .invite-btn .ib-label { font-family:'Press Start 2P',monospace; font-size:0.66rem; color:#e0503b;
     font-weight:700; text-transform:uppercase; white-space:nowrap; letter-spacing:0.3px;
     text-shadow:-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff,
                 -1px 0 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff; }
@@ -907,6 +907,7 @@ window.addEventListener('load',()=>setTimeout(()=>Forest.init(),600));
    Forest sends the connected wallet address to the iframe (display-only). We use it
    to automatically key each player's leaderboard entry — no name entry, no save button. */
 let walletAddress = null, projectId = null;
+let serverActivated = false;   // server-authoritative activation flag — prevents charging a wallet twice
 let gameBalance = null;              // Forest Game Balance snapshot (Project Token, separate from in-game 🪙 coins)
 let walletTokenBalance = null;       // wallet-held $GARDEN balance (display number, from a sell-quote snapshot)
 let walletTokenSymbol = 'GARDEN';    // launched-token symbol, overridden by the snapshot
@@ -1671,6 +1672,8 @@ function displayItem(it){
 function syncState(s){
   if(!s) return;
   coins=s.coins; boxes=s.boxes; level=s.level; xp=s.xp;
+  if(typeof s.totalEarned==='number') totalCoinsEarned=s.totalEarned;   // server lifetime earnings → leaderboard score
+  serverActivated = !!s.activated;
   replaceInv(seeds, s.seeds); replaceInv(stock, s.stock); replaceInv(medicine, s.cures); replaceBoosts(s.boosts);
   const sp=s.plots||[];
   for(let i=0;i<TILES;i++){
@@ -1684,6 +1687,8 @@ function syncState(s){
     }
   }
   renderAll(); updateHUD(); updateLevelHUD();
+  recordScore();                                   // reflect synced lifetime earnings in the local board
+  if(serverActivated){ const r=refLoad(); if(!r.purchased){ r.purchased=true; refSave(r); } closeOverlay('onboard-overlay'); }
 }
 async function onlinePlant(idx, plant, variant){
   try{
@@ -2030,10 +2035,26 @@ function recordScore(){
   lbSave(entries.slice(0, Math.max(LB_MAX, entries.length)));   // keep all entries; we slice on render
 }
 
-function renderLeaderboard(){
-  const entries = lbLoad().sort((a,b)=>b.score-a.score);
+function renderLeaderboard(serverRows){
+  const isServer = Array.isArray(serverRows);
+  let entries, isMe;
+  if(isServer){
+    // score = server lifetime total_earned. Collapse any rows that share a wallet
+    // (keep the highest score) so a wallet can never appear twice on the board.
+    const byWallet = new Map(); const noWallet = [];
+    serverRows.forEach(r => {
+      const row = { wallet:r.wallet, score:r.score, level:r.level, date:'', code:r.code };
+      if(r.wallet){ const prev = byWallet.get(r.wallet); if(!prev || r.score > prev.score) byWallet.set(r.wallet, row); }
+      else noWallet.push(row);
+    });
+    entries = [...byWallet.values(), ...noWallet].sort((a,b)=>b.score-a.score);
+    isMe = e => Backend.code && e.code === Backend.code;
+  } else {
+    entries = lbLoad().sort((a,b)=>b.score-a.score);
+    const myId = playerId();
+    isMe = e => e.id === myId;
+  }
   const body = document.getElementById('lb-body');
-  const myId = playerId();
 
   document.getElementById('lb-cur-score').textContent = totalCoinsEarned;
   document.getElementById('lb-cur-level').textContent = level;
@@ -2057,24 +2078,29 @@ function renderLeaderboard(){
     + '</tr></thead><tbody>';
 
   entries.slice(0, LB_MAX).forEach((e,i) => {
-    const me = e.id === myId ? ' class="me"' : '';
+    const me = isMe(e) ? ' class="me"' : '';
     const label = e.wallet ? shortWallet(e.wallet) : '👤 You';
     html += `<tr${me}>`
       + `<td>${rankMedal(i)}</td>`
       + `<td class="lb-name">${label}</td>`
       + `<td class="lb-score">🪙${e.score}</td>`
       + `<td class="lb-level">${e.level}</td>`
-      + `<td class="lb-date">${e.date}</td>`
+      + `<td class="lb-date">${e.date||'—'}</td>`
       + '</tr>';
   });
   html += '</tbody></table>';
   body.innerHTML = html;
 }
 
-function openLeaderboard(){
+async function openLeaderboard(){
   recordScore();
-  renderLeaderboard();
   openOverlay('lb-overlay');
+  if(Backend.online){
+    // server board is authoritative + deduped by userId; falls back to local if the fetch fails
+    try{ const r = await Backend.leaderboard(); renderLeaderboard(r.leaderboard||[]); return; }
+    catch(e){ /* fall through to local board */ }
+  }
+  renderLeaderboard();
 }
 
 /* ════════════════ VAULT (Forest Game Balance deposit / withdraw) ════════════════ */
@@ -2433,7 +2459,7 @@ function maybeShowOnboarding(){
 function onboardGoto(n){
   document.getElementById('onboard-page1').style.display = (n===1) ? 'block' : 'none';
   document.getElementById('onboard-page2').style.display = (n===2) ? 'block' : 'none';
-  if(n===2){ updateOnboardBalance(); renderStarterSummary(); }
+  if(n===2){ if(walletAddress) callForest('forest.swap.quote', { amount:'1', direction:'sell' }); updateOnboardBalance(); renderStarterSummary(); }
 }
 // open the frameless bottom-left invite button's share popup
 function openInvite(){
@@ -2494,12 +2520,23 @@ function buyFail(msg){ buyBusy=false; buyPhase='idle'; const b=document.getEleme
 
 // Real swap through the player's own wallet. Quote first to read the BNB→$GARDEN
 // rate, then buy the BNB worth our target token count (with headroom for drift).
-function startPurchase(){
+async function startPurchase(){
   if(buyBusy) return;
   if(!walletAddress){ buyStatus('Connect your wallet on Forest to activate.','err'); return; }
+  // once-per-wallet guard: re-check the server's authoritative activation flag right before
+  // charging, so a wallet (e.g. on a fresh browser with empty localStorage) is never billed twice.
+  if(Backend.online){
+    try{ const st=await Backend.state(); if(st && st.activated){ markActivatedAndEnter(); return; } }catch(e){}
+  }
   buyBusy=true; buyPhase='quoting'; const b=document.getElementById('buy-btn'); if(b) b.disabled=true;
   buyStatus('Fetching price…','');
   callForest('forest.swap.quote', { amount:'0.01', direction:'buy', slippage:0.5 });
+}
+function markActivatedAndEnter(){
+  const r=refLoad(); r.purchased=true; refSave(r);
+  serverActivated=true; buyBusy=false; buyStatus('','');
+  closeOverlay('onboard-overlay');
+  toast('✅ Already activated — welcome back 🌱');
 }
 function onBuyQuote(snap){
   if(buyPhase !== 'quoting') return;
