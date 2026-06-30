@@ -882,7 +882,7 @@
 <!-- LEADERBOARD -->
 <div class="overlay" id="lb-overlay" onclick="bgClose(event,'lb-overlay')">
   <div class="modal"><h2>🏆 Leaderboard</h2>
-    <p id="lb-my-score">You (<span id="lb-cur-wallet">not connected</span>): Lv <strong id="lb-cur-level">1</strong></p>
+    <p id="lb-my-score">You (<span id="lb-cur-wallet">not connected</span>): Lv <strong id="lb-cur-level">1</strong> · <strong id="lb-cur-earned">0</strong> $GARDEN earned</p>
     <div id="lb-body"></div>
     <button class="btn btn-close" onclick="closeOverlay('lb-overlay')">Close</button>
   </div>
@@ -2065,6 +2065,7 @@ function renderLeaderboard(serverRows){
   const body = document.getElementById('lb-body');
 
   document.getElementById('lb-cur-level').textContent = level;
+  document.getElementById('lb-cur-earned').textContent = Number(totalCoinsEarned||0).toLocaleString();
   document.getElementById('lb-cur-wallet').textContent = walletAddress ? shortWallet(walletAddress) : 'not connected';
 
   if(!entries.length){
@@ -2080,7 +2081,7 @@ function renderLeaderboard(serverRows){
   };
 
   let html = '<table id="lb-table"><thead><tr>'
-    + '<th></th><th>Player</th><th style="text-align:right">Level</th>'
+    + '<th></th><th>Player</th><th style="text-align:right">Level</th><th style="text-align:right">$GARDEN earned</th>'
     + '</tr></thead><tbody>';
 
   entries.slice(0, LB_MAX).forEach((e,i) => {
@@ -2090,6 +2091,7 @@ function renderLeaderboard(serverRows){
       + `<td>${rankMedal(i)}</td>`
       + `<td class="lb-name">${label}</td>`
       + `<td class="lb-level" style="text-align:right">${e.level}</td>`
+      + `<td class="lb-score">${Number(e.score||0).toLocaleString()}</td>`
       + '</tr>';
   });
   html += '</tbody></table>';
