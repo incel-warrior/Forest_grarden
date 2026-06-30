@@ -882,7 +882,7 @@
 <!-- LEADERBOARD -->
 <div class="overlay" id="lb-overlay" onclick="bgClose(event,'lb-overlay')">
   <div class="modal"><h2>🏆 Leaderboard</h2>
-    <p id="lb-my-score">You (<span id="lb-cur-wallet">not connected</span>): <strong id="lb-cur-score">0</strong> 🪙 · Lv <strong id="lb-cur-level">1</strong></p>
+    <p id="lb-my-score">You (<span id="lb-cur-wallet">not connected</span>): Lv <strong id="lb-cur-level">1</strong></p>
     <div id="lb-body"></div>
     <button class="btn btn-close" onclick="closeOverlay('lb-overlay')">Close</button>
   </div>
@@ -1553,9 +1553,10 @@ function openInventory(){
   const rarRank={common:0,rare:1,mythic:2}, varRank={common:0,rare:1,mythic:2,legendary:3};
   const owned=Object.keys(seeds).filter(k=>seeds[k]>0).sort((a,b)=>{
     const [pa,va]=a.split('|'),[pb,vb]=b.split('|');
+    if(PLANTS[pa].lvl!==PLANTS[pb].lvl) return PLANTS[pa].lvl-PLANTS[pb].lvl;   // 1) level required
     const ra=rarRank[PLANTS[pa].rarity], rb=rarRank[PLANTS[pb].rarity];
-    if(ra!==rb) return ra-rb;                                  // Crop → Fruit → Berry
-    if(varRank[va]!==varRank[vb]) return varRank[va]-varRank[vb]; // Common → Rare → Mythic → Legendary
+    if(ra!==rb) return ra-rb;                                  // 2) rarity: Crop → Fruit → Berry
+    if(varRank[va]!==varRank[vb]) return varRank[va]-varRank[vb]; //    then Common → Rare → Mythic → Legendary
     return PLANTS[pa].name.localeCompare(PLANTS[pb].name);
   });
   if(!owned.length) grid.innerHTML='<p style="grid-column:1/3;text-align:center;color:var(--text-dim);">No seeds — open a 🎁 Seedbox!</p>';
@@ -1649,7 +1650,7 @@ function rollItem(){
 // celebration tiers: common = none, rare = small, mythic = medium, legendary = BIG
 const TIER_RANK ={item:0,common:0,rare:1,mythic:2,legendary:3};
 
-let revealing=false, pendingItems=null, tapTimes=[];
+let revealing=false, pendingItems=null, tapTimes=[], pendingApply=null, revealFallback=null;
 const FAST_CLICKS=3, FAST_WINDOW=1000;   // open if ≥3 clicks within 1 second
 
 /* ════════════════ ONLINE MODE (server-authoritative when Backend.online) ════════════════
@@ -1750,6 +1751,9 @@ function beginReveal(items){
   chest.style.opacity='1'; chest.style.transform='none';
   document.getElementById('tap-prompt').textContent='CLICK QUICKLY!';
   revealing=true;
+  // safety net: a missed/finicky fast-click must never strand an opened box — auto-reveal shortly
+  clearTimeout(revealFallback);
+  revealFallback=setTimeout(()=>{ if(pendingItems){ document.getElementById('tap-stage').style.display='none'; revealItems(pendingItems); } }, 2500);
 }
 
 function openSeedbox(){
@@ -1759,19 +1763,19 @@ function openSeedbox(){
   if(Backend.online){
     revealing=true;   // lock against double-open while the request is in flight
     Backend.openBox().then(r=>{
-      revealing=false;
-      boxes=r.boxes; replaceInv(seeds,r.seeds); replaceInv(medicine,r.cures); replaceBoosts(r.boosts); updateHUD();
       Forest.event('lootbox_open',{items:(r.items||[]).map(i=>i.type)});
+      // server already rolled + consumed; reflect it in the UI only once items are revealed
+      pendingApply=()=>{ boxes=r.boxes; replaceInv(seeds,r.seeds); replaceInv(medicine,r.cures); replaceBoosts(r.boosts); updateHUD(); };
       beginReveal((r.items||[]).map(displayItem));   // loot was rolled SERVER-SIDE
-    }).catch(e=>{ revealing=false; toast(/no_boxes/.test(e.message)?'No Seedboxes — Buy one first!':'Could not open box.'); });
+    }).catch(e=>{ revealing=false; pendingApply=null; toast(/no_boxes/.test(e.message)?'No Seedboxes — Buy one first!':'Could not open box.'); });
     return;
   }
 
-  boxes--; updateHUD();
-  // roll 5 locally, grant immediately
+  // roll 5 locally; consume the box only when the reveal actually shows the items
   const items=[];
   for(let i=0;i<ITEMS_PER_BOX;i++) items.push(rollItem());
   Forest.event('lootbox_open',{items:items.map(i=>i.tier)});
+  pendingApply=()=>{ boxes--; updateHUD(); };
   beginReveal(items);
 }
 
@@ -1784,7 +1788,7 @@ function tapToOpen(){
   chest.animate([{transform:'translateX(0) rotate(0) scale(1)'},{transform:'translateX(-5px) rotate(-3deg) scale(1.06)'},{transform:'translateX(5px) rotate(3deg) scale(1.06)'},{transform:'translateX(0) rotate(0) scale(1)'}],{duration:200});
   fixedSparkle(chest, 5);
   if(tapTimes.length>=FAST_CLICKS){
-    tapTimes=[];
+    tapTimes=[]; clearTimeout(revealFallback);
     document.getElementById('tap-prompt').textContent='';
     flashScreen('epic');
     chest.animate([{transform:'scale(1)',opacity:1},{transform:'scale(1.35)',opacity:1},{transform:'scale(0.2)',opacity:0}],{duration:420});
@@ -1794,6 +1798,8 @@ function tapToOpen(){
 }
 
 function revealItems(items){
+  clearTimeout(revealFallback);
+  if(pendingApply){ pendingApply(); pendingApply=null; }   // consume the box now that items are on screen
   const stage=document.getElementById('reveal-stage'), row=document.getElementById('reveal-row'),
         banner=document.getElementById('reveal-banner');
   stage.classList.add('on'); banner.className=''; banner.textContent=''; row.innerHTML='';
@@ -2039,30 +2045,30 @@ function recordScore(){
 function renderLeaderboard(serverRows){
   const isServer = Array.isArray(serverRows);
   let entries, isMe;
+  // ranked by Level (coins reflect deposits/withdrawals, so they're not a fair score)
+  const byLevel = (a,b) => (b.level-a.level) || ((b.xp||0)-(a.xp||0)) || ((b.score||0)-(a.score||0));
   if(isServer){
-    // score = server lifetime total_earned. Collapse any rows that share a wallet
-    // (keep the highest score) so a wallet can never appear twice on the board.
+    // collapse any rows that share a wallet (keep the highest level) so a wallet appears once
     const byWallet = new Map(); const noWallet = [];
     serverRows.forEach(r => {
-      const row = { wallet:r.wallet, score:r.score, level:r.level, date:'', code:r.code };
-      if(r.wallet){ const prev = byWallet.get(r.wallet); if(!prev || r.score > prev.score) byWallet.set(r.wallet, row); }
+      const row = { wallet:r.wallet, level:r.level, xp:r.xp, score:r.score, code:r.code };
+      if(r.wallet){ const prev = byWallet.get(r.wallet); if(!prev || r.level > prev.level) byWallet.set(r.wallet, row); }
       else noWallet.push(row);
     });
-    entries = [...byWallet.values(), ...noWallet].sort((a,b)=>b.score-a.score);
+    entries = [...byWallet.values(), ...noWallet].sort(byLevel);
     isMe = e => Backend.code && e.code === Backend.code;
   } else {
-    entries = lbLoad().sort((a,b)=>b.score-a.score);
+    entries = lbLoad().sort(byLevel);
     const myId = playerId();
     isMe = e => e.id === myId;
   }
   const body = document.getElementById('lb-body');
 
-  document.getElementById('lb-cur-score').textContent = totalCoinsEarned;
   document.getElementById('lb-cur-level').textContent = level;
   document.getElementById('lb-cur-wallet').textContent = walletAddress ? shortWallet(walletAddress) : 'not connected';
 
   if(!entries.length){
-    body.innerHTML = '<div id="lb-empty">No scores yet — sell crops to climb the board!</div>';
+    body.innerHTML = '<div id="lb-empty">No players yet — harvest crops to level up!</div>';
     return;
   }
 
@@ -2074,8 +2080,7 @@ function renderLeaderboard(serverRows){
   };
 
   let html = '<table id="lb-table"><thead><tr>'
-    + '<th></th><th>Player</th><th style="text-align:right">Coins</th>'
-    + '<th style="text-align:right">Lv</th><th style="text-align:right">Date</th>'
+    + '<th></th><th>Player</th><th style="text-align:right">Level</th>'
     + '</tr></thead><tbody>';
 
   entries.slice(0, LB_MAX).forEach((e,i) => {
@@ -2084,9 +2089,7 @@ function renderLeaderboard(serverRows){
     html += `<tr${me}>`
       + `<td>${rankMedal(i)}</td>`
       + `<td class="lb-name">${label}</td>`
-      + `<td class="lb-score">🪙${e.score}</td>`
-      + `<td class="lb-level">${e.level}</td>`
-      + `<td class="lb-date">${e.date||'—'}</td>`
+      + `<td class="lb-level" style="text-align:right">${e.level}</td>`
       + '</tr>';
   });
   html += '</tbody></table>';

@@ -380,12 +380,12 @@ app.post('/vault/withdraw', requireAuth, wrap(async (req, res) => {
 app.get('/leaderboard', wrap(async (req, res) => {
   const limit = Math.min(100, Math.max(1, Number(req.query.limit || 20)));
   const rows = (await pool.query(
-    `SELECT code, wallet_address, total_earned, level FROM users WHERE total_earned > 0
-       ORDER BY total_earned DESC LIMIT $1`, [limit]
+    `SELECT code, wallet_address, total_earned, level, xp FROM users WHERE level > 1 OR xp > 0
+       ORDER BY level DESC, xp DESC LIMIT $1`, [limit]
   )).rows;
   res.json({
     leaderboard: rows.map((r, i) => ({
-      rank: i + 1, code: r.code, wallet: r.wallet_address, score: Number(r.total_earned), level: r.level,
+      rank: i + 1, code: r.code, wallet: r.wallet_address, level: r.level, xp: Number(r.xp), score: Number(r.total_earned),
     })),
   });
 }));
