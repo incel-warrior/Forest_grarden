@@ -2190,7 +2190,11 @@ async function doVault(direction){
     if(direction==='deposit'){
       // only pull from the wallet what the Game Balance is short by — this also converts any
       // pre-existing (stranded) Game Balance into coins.
-      const have=Number((gameBalance && gameBalance.balance) || 0);
+      // read the Game Balance FRESH so we convert what's already deposited and only pull from
+      // the wallet what's actually missing (don't charge a wallet that may already be empty).
+      vaultStatus('Checking your balance…','');
+      let have=Number((gameBalance && gameBalance.balance) || 0);
+      try{ const gb=await callForestAsync('forest.game.balance'); if(gb && gb.balance!=null){ gameBalance=gb; have=Number(gb.balance)||0; } }catch(e){}
       const need=Math.max(0, amount-have);
       if(need>0){
         vaultStatus('Confirm the '+need+' $GARDEN deposit in your wallet…','');
@@ -2230,7 +2234,10 @@ async function doVault(direction){
     if(/not_enough_coins/.test(m)) msg='Not enough 🪙 coins.';
     else if(/daily_limit_remaining:(\d+)/.test(m)){ const n=m.match(/daily_limit_remaining:(\d+)/)[1]; msg='Daily limit — 🪙'+Number(n).toLocaleString()+' remaining today.'; }
     else if(/timeout/i.test(m)) msg='Timed out waiting for your wallet. Try again.';
-    else if(/INSUFFICIENT|vault/i.test(m)) msg='Vault is temporarily out of funds — try later or a smaller amount.';
+    else if(/AUTHORIZATION/i.test(m)) msg='Could not authorize with Forest — reload the game and try again.';
+    else if(/INSUFFICIENT_BALANCE|insufficient|exceed/i.test(m)) msg='Not enough $GARDEN available for that amount.';
+    else if(/vault/i.test(m)) msg='Vault is temporarily out of funds — try later or a smaller amount.';
+    console.warn('[vault] '+direction+' failed:', m);
     vaultStatus(msg, 'err');
   }finally{
     vaultBusy=false; updateVaultButtons();

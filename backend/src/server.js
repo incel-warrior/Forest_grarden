@@ -19,6 +19,13 @@ app.use(cors({
 
 // Throw these for clean 4xx; anything else becomes a generic 500 (no internal leakage).
 function httpError(status, msg) { const e = new Error(msg); e.httpStatus = status; return e; }
+// surface the Forest settlement error code to the client instead of a generic 500
+function settleError(e) {
+  const m = String((e && e.message) || '');
+  const at = m.indexOf('{');
+  if (at >= 0) { try { const o = JSON.parse(m.slice(at)); return httpError(400, o.code || o.message || 'settlement_failed'); } catch {} }
+  return httpError(502, 'settlement_failed');
+}
 const wrap = fn => (req, res) => fn(req, res).catch(err => {
   if (err && err.httpStatus) return res.status(err.httpStatus).json({ error: err.message });
   console.error(err);
@@ -304,7 +311,8 @@ app.post('/vault/deposit', requireAuth, wrap(async (req, res) => {
     await settle({ actionId, debitAmount: toBaseUnits(amount), creditAmount: '0' });
   } catch (e) {
     await pool.query('DELETE FROM settled_actions WHERE action_id = $1', [actionId]);  // allow a clean retry
-    throw e;
+    console.error('[vault/deposit] settle failed:', e.message);
+    throw settleError(e);
   }
   const out = await withUserLock(req.userId, async (client, u) => {
     const coins = num(u.coins) + amount;
@@ -362,7 +370,8 @@ app.post('/vault/withdraw', requireAuth, wrap(async (req, res) => {
         [req.userId, amount, Math.max(0, used - amount)]);
     });
     await pool.query('DELETE FROM settled_actions WHERE action_id = $1', [actionId]);
-    throw e;
+    console.error('[vault/withdraw] settle failed:', e.message);
+    throw settleError(e);
   }
   res.json({ ok: true, coins: reserved.coins });
 }));
