@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 export function rnd() { return crypto.randomInt(0, 1_000_000) / 1_000_000; }
 
 export const RARITY = {
-  common: { growMin: 20,  xpBase: 5  },
+  common: { growMin: 26,  xpBase: 5  },
   rare:   { growMin: 120, xpBase: 16 },
   mythic: { growMin: 480, xpBase: 42 },
 };
