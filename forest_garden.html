@@ -1256,7 +1256,10 @@ function auraTip(v, plant){
 function plotTip(p){
   if(p.state==='empty') return '';
   const pl=PLANTS[p.plant], cat=RARITY_NAME[pl.rarity];
-  const lines=[`${pl.icon} ${pl.name}  ·  ${cat}`];
+  // some plants use an inline-SVG icon (raspberry, papaya, …) which can't render in a text
+  // tooltip — only prefix the icon when it's an emoji, otherwise show the name alone.
+  const ico=(typeof pl.icon==='string' && pl.icon.trim().charAt(0)==='<') ? '' : pl.icon+' ';
+  const lines=[`${ico}${pl.name}  ·  ${cat}`];
   const vl=VARIANT[p.variant].label;
   if(vl){
     const bp=Math.round(VARIANT[p.variant].boost*100);
