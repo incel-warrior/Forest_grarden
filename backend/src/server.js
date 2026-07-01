@@ -197,6 +197,20 @@ app.post('/harvest', requireAuth, wrap(async (req, res) => {
   }));
 }));
 
+// ─── discard a plot (spoiled crop or manual remove) — frees the slot, NO reward ───
+app.post('/plot/clear', requireAuth, wrap(async (req, res) => {
+  const { idx } = req.body || {};
+  if (!Number.isInteger(idx) || idx < 0 || idx >= TILES) throw httpError(400, 'bad idx');
+  res.json(await withUserLock(req.userId, async (client, u) => {
+    const plots = Array.isArray(u.plots) ? u.plots : [];
+    while (plots.length < TILES) plots.push(null);
+    plots[idx] = null;
+    await client.query('UPDATE users SET plots = $2, last_activity = $3 WHERE user_id = $1',
+      [req.userId, JSON.stringify(plots), Date.now()]);
+    return { idx, cleared: true };
+  }));
+}));
+
 // ─── #1 FIX: sell — prices come from the SERVER, inventory is consumed SERVER-SIDE.
 // The 10% referral reward derives from the server-computed value, never a client number.
 app.post('/sell', requireAuth, wrap(async (req, res) => {

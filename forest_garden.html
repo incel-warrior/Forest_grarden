@@ -967,6 +967,7 @@ const Backend = {
   buyBox(){ return this.api('/box/buy', { method:'POST' }); },
   plant(idx,plant,variant){ return this.api('/plant', { method:'POST', body:{ idx, plant, variant } }); },
   harvest(idx){ return this.api('/harvest', { method:'POST', body:{ idx } }); },
+  clearPlot(idx){ return this.api('/plot/clear', { method:'POST', body:{ idx } }); },
   sell(kind,key,qty){ return this.api('/sell', { method:'POST', body:{ kind, key, qty } }); },
   claimDaily(){ return this.api('/daily/claim', { method:'POST' }); },
   deposit(actionId, amount){ return this.api('/vault/deposit', { method:'POST', body:{ actionId, amount } }); },
@@ -1436,7 +1437,7 @@ function handleClick(idx){
   if(tool==='plant'){
     if(p.state!=='empty'){
       // be forgiving: don't trap the player in plant mode on an occupied plot
-      if(p.state==='spoiled'){ Object.assign(p,{state:'empty',plant:null,t:0,growT:0,winT:0,sick:false,boosted:false}); renderAll(); }
+      if(p.state==='spoiled'){ Object.assign(p,{state:'empty',plant:null,t:0,growT:0,winT:0,sick:false,boosted:false}); if(Backend.online) Backend.clearPlot(idx).catch(()=>{}); renderAll(); }
       toast('That plot is taken — switching to Harvest.'); setTool('harvest'); return;
     }
     if(!selSeed){toast('Select a seed 🎒');openInventory();return;}
@@ -1463,7 +1464,7 @@ function handleClick(idx){
   }
 
   else if(tool==='harvest'){
-    if(p.state==='spoiled'){ Object.assign(p,{state:'empty',plant:null,t:0,growT:0,winT:0,sick:false,boosted:false}); renderAll(); toast('🗑️ Cleared the spoiled crop.'); return; }
+    if(p.state==='spoiled'){ if(Backend.online){ onlineClear(idx,'🗑️ Cleared the spoiled crop.'); } else { Object.assign(p,{state:'empty',plant:null,t:0,growT:0,winT:0,sick:false,boosted:false}); renderAll(); toast('🗑️ Cleared the spoiled crop.'); } return; }
     if(p.state!=='ready'){toast(p.state==='empty'?'Empty plot — plant a seed 🎒':'Not ready yet.');return;}
     if(Backend.online){ onlineHarvest(idx); return; }
     const xpGain=harvestXP(p.plant);
@@ -1476,6 +1477,7 @@ function handleClick(idx){
 
   else if(tool==='remove'){
     if(p.state==='empty'){toast('Nothing here.');return;}
+    if(Backend.online){ onlineClear(idx,'🪓 Cleared.'); return; }
     Object.assign(p,{state:'empty',plant:null,t:0,growT:0,winT:0,sick:false,boosted:false});
     renderAll();toast('🪓 Cleared.');
   }
@@ -1682,8 +1684,13 @@ function syncState(s){
     const q=sp[i];
     if(q && q.plant){
       const growT=Math.max(1,Math.round(q.growMs/TICK_MS));
-      const t=Math.min(growT, Math.max(0,(Date.now()-q.plantedAt)/TICK_MS));
-      plots[i]={state:t>=growT?'ready':'growing', plant:q.plant, variant:q.variant, t, growT, winT:0, sick:false, sickRolled:false, boosted:false};
+      const windowT=RARITY[PLANTS[q.plant].rarity].windowMin;
+      const elapsed=Math.max(0,(Date.now()-q.plantedAt)/TICK_MS);
+      let st,t,winT=0;
+      if(elapsed<growT){ st='growing'; t=elapsed; }
+      else if(elapsed<growT+windowT){ st='ready'; t=growT; winT=elapsed-growT; }   // still within harvest window
+      else { st='spoiled'; t=growT; winT=windowT; }                                 // missed the window → spoiled (survives refresh)
+      plots[i]={state:st, plant:q.plant, variant:q.variant, t, growT, winT, sick:false, sickRolled: elapsed>=growT*0.5, boosted:false};
     } else {
       plots[i]={state:'empty',plant:null,variant:'common',t:0,growT:0,winT:0,sick:false,sickRolled:false,boosted:false};
     }
@@ -1713,6 +1720,13 @@ async function onlineHarvest(idx){
     renderAll(); updateHUD(); updateLevelHUD();
     toast('🧺 Harvested! Sell it in 💰 Market.');
   }catch(e){ toast(/not_ready/.test(e.message)?'Not ready yet.':'Could not harvest.'); }
+}
+// free a plot server-side (spoiled crop or manual remove) — clears local immediately, no reward
+function onlineClear(idx, msg){
+  Object.assign(plots[idx],{state:'empty',plant:null,variant:'common',t:0,growT:0,winT:0,sick:false,sickRolled:false,boosted:false});
+  renderAll();
+  Backend.clearPlot(idx).catch(()=>{});
+  if(msg) toast(msg);
 }
 async function onlineSell(kind, key){
   try{
@@ -1925,13 +1939,18 @@ function renderSell(){
 /* ════════════════ LOOP ════════════════ */
 function gameTick(){
   let changed=false;
-  // Online: the server is authoritative on growth/sickness/spoilage. Only advance the
-  // growth clock for display and flip growing→ready (no local sickness/spoilage desync).
+  // Online: the server owns grow TIME (no local aura here, or the client would show ready
+  // before the server allows harvest). Sickness + spoilage are client-side — the server omits
+  // them — and are enforced client-side (spoiled crops are cleared via /plot/clear, no reward).
   if(Backend.online){
     for(const p of plots){
       if(p.state==='growing'){
         p.t += 1; changed=true;
-        if(p.t>=p.growT){ p.t=p.growT; p.state='ready'; p.winT=0; }
+        if(!p.sick && !p.sickRolled && p.t >= p.growT*0.5){ p.sickRolled=true; if(Math.random()<0.20) p.sick=true; }
+        if(p.t>=p.growT){ p.t=p.growT; if(p.sick){ p.state='spoiled'; } else { p.state='ready'; p.winT=0; } }
+      } else if(p.state==='ready'){
+        p.winT+=1; changed=true;
+        if(p.winT>=RARITY[PLANTS[p.plant].rarity].windowMin){ p.state='spoiled'; }
       }
     }
     if(changed) renderAll();
