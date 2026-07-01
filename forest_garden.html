@@ -327,11 +327,11 @@
   #buy-status { font-size:0.74rem; text-align:center; margin-top:10px; min-height:1rem; color:var(--text-dim); line-height:1.35; }
   #buy-status.ok { color:var(--leaf); } #buy-status.err { color:var(--berry-lt); }
 
-  #toast { position:fixed; top:120px; left:50%; transform:translateX(-50%) translateY(-10px);
+  #toast { position:fixed; bottom:18px; right:18px; left:auto; top:auto; transform:translateY(10px);
     background:rgba(8,18,11,0.5); border:2px solid var(--border); color:var(--text);
     border-radius:6px; padding:8px 18px; font-weight:700; font-size:0.85rem; opacity:0; pointer-events:none; z-index:300;
-    transition:opacity 0.25s, transform 0.25s; max-width:90vw; text-align:center; }
-  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    transition:opacity 0.25s, transform 0.25s; max-width:80vw; text-align:right; }
+  #toast.show { opacity:1; transform:translateY(0); }
 
   .fx { position:absolute; pointer-events:none; font-size:1.2rem; font-weight:800; z-index:50; white-space:nowrap;
         animation: floatUp 0.9s ease-out forwards; text-shadow:0 2px 3px #000; }
