@@ -1425,8 +1425,19 @@ function renderCell(idx){
 }
 function renderAll(){ for(let i=0;i<plots.length;i++) renderCell(i); }
 
+// compact coin counter: <100k shown as-is, 100k–999,999 as "102.43k", ≥1m as "1.54m"
+// (rounded to 2 decimals, trailing zeros trimmed so 100000 → "100k", 1500000 → "1.5m")
+function fmtCoins(n){
+  n=Math.round(Number(n)||0);
+  if(n>=1e6) return +(n/1e6).toFixed(2)+'m';
+  if(n>=1e5){
+    const k=+(n/1e3).toFixed(2);
+    return k>=1000 ? +(k/1e3).toFixed(2)+'m' : k+'k';   // 999,999 rolls to 1m, not 1000k
+  }
+  return String(n);
+}
 function updateHUD(){
-  document.getElementById('coins-display').textContent=coins;
+  document.getElementById('coins-display').textContent=fmtCoins(coins);
   document.getElementById('box-cost').textContent=LOOTBOX_COST;
   const bc=document.getElementById('box-count'); if(bc) bc.textContent=boxes;
   const b=document.getElementById('buy-box-btn'); if(b) b.disabled=coins<LOOTBOX_COST;
